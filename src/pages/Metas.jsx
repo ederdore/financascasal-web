@@ -18,6 +18,8 @@ export default function Metas({ session, profile }) {
   const [aporteValor, setAporteValor] = useState('')
   const [aporteQuem, setAporteQuem] = useState(profile.papel)
   const [aporteObs, setAporteObs] = useState('')
+  const [bancos, setBancos] = useState([])
+  const [aporteBancoId, setAporteBancoId] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { loadData() }, [])
@@ -25,7 +27,16 @@ export default function Metas({ session, profile }) {
   async function loadData() {
     const cc = profile.casal_code
     const cf = q => cc ? q.eq('casal_code', cc) : q.eq('user_id', session.user.id)
-    const { data } = await cf(supabase.from('metas').select('*')).order('created_at', { ascending: false })
+    const [metasData, bancosData] = await Promise.all([
+      cf(supabase.from('metas').select('*')).order('created_at', { ascending: false }),
+      cf(supabase.from('contas_banco').select('*')),
+    ])
+    if (bancosData.data) {
+      setBancos(bancosData.data)
+      const principal = bancosData.data.find(b => b.id === profile.banco_principal_id) || bancosData.data[0]
+      if (principal) setAporteBancoId(principal.id)
+    }
+    const { data } = metasData
     if (data) {
       // Normaliza: usa valor_atual se existir, senão usa atual
       const normalized = data.map(m => ({
@@ -88,10 +99,36 @@ export default function Metas({ session, profile }) {
     const now = new Date()
     try {
       const novoAtual = (metaAporte.valor_atual || 0) + val
+      const cc = profile.casal_code || session.user.id
+
+      // 1. Atualiza a meta
       const r1 = await supabase.from('metas').update({ valor_atual: novoAtual, atual: novoAtual, updated_at: new Date() }).eq('id', metaAporte.id)
       if (r1.error) throw r1.error
-      const r2 = await supabase.from('aportes_metas').insert({ user_id: session.user.id, casal_code: profile.casal_code || session.user.id, meta_id: metaAporte.id, valor: val, quem: aporteQuem, observacao: aporteObs || null, mes: now.getMonth(), ano: now.getFullYear() })
+
+      // 2. Registra o aporte
+      const r2 = await supabase.from('aportes_metas').insert({
+        user_id: session.user.id, casal_code: cc,
+        meta_id: metaAporte.id, valor: val, quem: aporteQuem,
+        observacao: aporteObs || null, mes: now.getMonth(), ano: now.getFullYear()
+      })
       if (r2.error) throw r2.error
+
+      // 3. Debita do banco e registra no extrato (se banco selecionado)
+      if (aporteBancoId) {
+        const banco = bancos.find(b => b.id === aporteBancoId)
+        if (banco) {
+          const novoSaldo = (banco.saldo || 0) - val
+          await supabase.from('contas_banco').update({ saldo: novoSaldo }).eq('id', aporteBancoId)
+          await supabase.from('extrato_banco').insert({
+            user_id: session.user.id, casal_code: cc,
+            banco_id: aporteBancoId, banco_nome: banco.banco,
+            tipo: 'saida', descricao: `Aporte: ${metaAporte.nome}`,
+            categoria: 'Investimento', valor: val, saldo_apos: novoSaldo,
+            mes: now.getMonth(), ano: now.getFullYear(),
+          })
+        }
+      }
+
       setModalAporte(false); loadData()
       if (novoAtual >= metaAporte.valor_alvo) alert(`🎉 Meta "${metaAporte.nome}" concluída! Parabéns!`)
     } catch (e) {
@@ -267,6 +304,18 @@ export default function Metas({ session, profile }) {
             <form onSubmit={salvarAporte}>
               <div className="form-group"><label className="form-label">Valor do aporte (R$)</label><input className="form-input" type="number" step="0.01" placeholder="Ex: 500" value={aporteValor} onChange={e => setAporteValor(e.target.value)} required /></div>
               <div className="form-group"><label className="form-label">Quem está aportando?</label><select className="form-select" value={aporteQuem} onChange={e => setAporteQuem(e.target.value)}><option value="eu">EU</option><option value="ela">ELA</option><option value="casal">Casal</option></select></div>
+              <div className="form-group">
+                <label className="form-label">🏦 Debitar de qual banco?</label>
+                <select className="form-select" value={aporteBancoId} onChange={e => setAporteBancoId(e.target.value)}>
+                  <option value="">Não movimentar banco</option>
+                  {bancos.map(b => <option key={b.id} value={b.id}>{b.banco} — {fmt(b.saldo)}</option>)}
+                </select>
+                {aporteBancoId && aporteValor && (() => {
+                  const banco = bancos.find(b => b.id === aporteBancoId)
+                  const ns = (banco?.saldo || 0) - (parseFloat(aporteValor) || 0)
+                  return <div style={{ fontSize: 12, marginTop: 6, color: ns >= 0 ? 'var(--green)' : 'var(--red)' }}>Saldo após: {fmt(ns)} {ns < 0 ? '⚠️' : '✓'}</div>
+                })()}
+              </div>
               <div className="form-group"><label className="form-label">Observação (opcional)</label><input className="form-input" placeholder="Ex: Guardei do 13º..." value={aporteObs} onChange={e => setAporteObs(e.target.value)} /></div>
               {aporteValor && (
                 <div style={{ background: '#EEF6FF', borderRadius: 10, padding: 10, marginBottom: 14, fontSize: 12, color: 'var(--blue)' }}>

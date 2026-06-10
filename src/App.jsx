@@ -13,6 +13,7 @@ import Reserva from './pages/Reserva.jsx'
 import Metas from './pages/Metas.jsx'
 import Notificacoes from './pages/Notificacoes.jsx'
 import IA from './pages/IA.jsx'
+import Configuracoes from './pages/Configuracoes.jsx'
 
 const TABS = [
   { id: 'visao',         icon: '◉',  label: 'Visão Geral' },
@@ -27,6 +28,7 @@ const TABS = [
   { id: 'metas',         icon: '🎯', label: 'Metas' },
   { id: 'notificacoes',  icon: '🔔', label: 'Notificações' },
   { id: 'ia',            icon: '🤖', label: 'IA' },
+  { id: 'configuracoes', icon: '⚙️',  label: 'Configurações' },
 ]
 
 export default function App() {
@@ -74,7 +76,7 @@ export default function App() {
 
   const pages = { visao: Visao, bancos: Bancos, receitas: Receitas, despesas: Despesas,
     cartoes: Cartoes, contas: Contas, streaming: Streaming, rendafixa: RendaFixa, reserva: Reserva,
-    metas: Metas, notificacoes: Notificacoes, ia: IA }
+    metas: Metas, notificacoes: Notificacoes, ia: IA, configuracoes: Configuracoes }
   const PageComponent = pages[tab] || Visao
 
   return (
@@ -122,7 +124,7 @@ export default function App() {
           </div>
         </div>
         <div className="page">
-          <PageComponent session={session} profile={profile} />
+          <PageComponent session={session} profile={profile} onProfileUpdate={() => loadProfile(session.user.id)} />
         </div>
       </main>
     </div>
