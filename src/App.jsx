@@ -6,6 +6,7 @@ import Bancos from './pages/Bancos.jsx'
 import Receitas from './pages/Receitas.jsx'
 import Despesas from './pages/Despesas.jsx'
 import Cartoes from './pages/Cartoes.jsx'
+import Contas from './pages/Contas.jsx'
 import Streaming from './pages/Streaming.jsx'
 import RendaFixa from './pages/RendaFixa.jsx'
 import Reserva from './pages/Reserva.jsx'
@@ -19,6 +20,7 @@ const TABS = [
   { id: 'receitas',      icon: '💰', label: 'Receitas' },
   { id: 'despesas',      icon: '💸', label: 'Despesas' },
   { id: 'cartoes',       icon: '💳', label: 'Cartões' },
+  { id: 'contas',        icon: '📋', label: 'Contas' },
   { id: 'streaming',     icon: '📺', label: 'Streaming' },
   { id: 'rendafixa',     icon: '📈', label: 'Renda Fixa' },
   { id: 'reserva',       icon: '🛡', label: 'Reserva' },
@@ -71,7 +73,7 @@ export default function App() {
   const papelTxt = profile.papel === 'eu' ? 'var(--eu-text)' : 'var(--ela-text)'
 
   const pages = { visao: Visao, bancos: Bancos, receitas: Receitas, despesas: Despesas,
-    cartoes: Cartoes, streaming: Streaming, rendafixa: RendaFixa, reserva: Reserva,
+    cartoes: Cartoes, contas: Contas, streaming: Streaming, rendafixa: RendaFixa, reserva: Reserva,
     metas: Metas, notificacoes: Notificacoes, ia: IA }
   const PageComponent = pages[tab] || Visao
 
