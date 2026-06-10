@@ -80,12 +80,15 @@ export default function RendaFixa({ session, profile }) {
         .eq('id', ativoAporte.id)
       if (e1) throw e1
 
-      // 2. Debita do banco se selecionado
+      // 2. Debita do banco + lança despesa + extrato
+      const now = new Date()
       if (aporteBancoId) {
         const banco = bancos.find(b => b.id === aporteBancoId)
         if (banco) {
           const novoSaldo = (banco.saldo || 0) - val
+          // Debita do banco
           await supabase.from('contas_banco').update({ saldo: novoSaldo }).eq('id', aporteBancoId)
+          // Extrato
           await supabase.from('extrato_banco').insert({
             user_id: session.user.id, casal_code: cc,
             banco_id: aporteBancoId, banco_nome: banco.banco,
@@ -93,10 +96,24 @@ export default function RendaFixa({ session, profile }) {
             descricao: `Aporte: ${ativoAporte.nome}`,
             categoria: 'Investimento',
             valor: val, saldo_apos: novoSaldo,
-            mes: new Date().getMonth(), ano: new Date().getFullYear(),
+            mes: now.getMonth(), ano: now.getFullYear(),
           })
         }
       }
+
+      // 3. Lança como despesa para aparecer no fluxo de caixa
+      await supabase.from('despesas').insert({
+        user_id: session.user.id, casal_code: cc,
+        nome: `Aporte: ${ativoAporte.nome}`,
+        valor: val,
+        categoria: 'Investimento',
+        quem: ativoAporte.dono || profile.papel,
+        tipo: 'fixa',
+        pagamento_tipo: 'debito',
+        banco_id: aporteBancoId || null,
+        banco_nome: bancos.find(b => b.id === aporteBancoId)?.banco || '',
+        mes: new Date().getMonth(), ano: new Date().getFullYear(),
+      })
 
       setModalAporte(false)
       loadData()
