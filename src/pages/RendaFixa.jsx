@@ -18,6 +18,11 @@ export default function RendaFixa({ session, profile }) {
   const [bancoId, setBancoId] = useState('')
   const [bancoNome, setBancoNome] = useState('')
   const [saving, setSaving] = useState(false)
+  const [modalAporte, setModalAporte] = useState(false)
+  const [ativoAporte, setAtivoAporte] = useState(null)
+  const [aporteValor, setAporteValor] = useState('')
+  const [aporteBancoId, setAporteBancoId] = useState('')
+  const [aporteObs, setAporteObs] = useState('')
 
   useEffect(() => { loadData() }, [])
 
@@ -50,6 +55,56 @@ export default function RendaFixa({ session, profile }) {
     setBancoId(i?.banco_id || bancos.find(b => b.id === profile.banco_principal_id)?.id || bancos[0]?.id || '')
     setBancoNome(i?.banco_nome || bancos.find(b => b.id === profile.banco_principal_id)?.banco || bancos[0]?.banco || '')
     setModal(true)
+  }
+
+  function openAporte(inv) {
+    setAtivoAporte(inv)
+    setAporteValor('')
+    setAporteObs('')
+    const principal = bancos.find(b => b.id === profile.banco_principal_id) || bancos[0]
+    if (principal) setAporteBancoId(principal.id)
+    setModalAporte(true)
+  }
+
+  async function salvarAporte(e) {
+    e.preventDefault()
+    const val = parseFloat(aporteValor) || 0
+    if (val <= 0 || !ativoAporte) { alert('Informe o valor'); return }
+    setSaving(true)
+    const cc = profile.casal_code || session.user.id
+    try {
+      // 1. Atualiza o valor do investimento
+      const novoValor = (ativoAporte.valor || 0) + val
+      const { error: e1 } = await supabase.from('investimentos')
+        .update({ valor: novoValor, updated_at: new Date() })
+        .eq('id', ativoAporte.id)
+      if (e1) throw e1
+
+      // 2. Debita do banco se selecionado
+      if (aporteBancoId) {
+        const banco = bancos.find(b => b.id === aporteBancoId)
+        if (banco) {
+          const novoSaldo = (banco.saldo || 0) - val
+          await supabase.from('contas_banco').update({ saldo: novoSaldo }).eq('id', aporteBancoId)
+          await supabase.from('extrato_banco').insert({
+            user_id: session.user.id, casal_code: cc,
+            banco_id: aporteBancoId, banco_nome: banco.banco,
+            tipo: 'saida',
+            descricao: `Aporte: ${ativoAporte.nome}`,
+            categoria: 'Investimento',
+            valor: val, saldo_apos: novoSaldo,
+            mes: new Date().getMonth(), ano: new Date().getFullYear(),
+          })
+        }
+      }
+
+      setModalAporte(false)
+      loadData()
+      alert(`✅ Aporte de ${fmt(val)} realizado em ${ativoAporte.nome}!
+Novo total: ${fmt(novoValor)}`)
+    } catch (e) {
+      alert('Erro ao aportar: ' + (e.message || JSON.stringify(e)))
+    } finally { setSaving(false) }
   }
 
   async function salvar(e) {
@@ -192,6 +247,7 @@ export default function RendaFixa({ session, profile }) {
                     </td>
                     <td>
                       <div className="row" style={{ gap: 6 }}>
+                        <button className="btn btn-green btn-sm" onClick={() => openAporte(i)}>💰 Aportar</button>
                         <button className="btn btn-outline btn-sm" onClick={() => openModal(i)}>✏️</button>
                         <button className="btn btn-sm" style={{ background: '#FCEBEB', color: 'var(--red)' }} onClick={() => excluir(i.id)}>🗑️</button>
                       </div>
@@ -265,6 +321,56 @@ export default function RendaFixa({ session, profile }) {
                 <button type="button" className="btn btn-outline" onClick={() => setModal(false)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? 'Salvando...' : edit ? 'Salvar' : 'Adicionar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Aporte */}
+      {modalAporte && ativoAporte && (
+        <div className="modal-overlay" onClick={() => setModalAporte(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>💰 Aportar — {ativoAporte.nome}</h3>
+            <div style={{ background: '#E1F5EE', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontWeight: 500, color: 'var(--green)', marginBottom: 4 }}>
+                {fmt(ativoAporte.valor, ativoAporte.moeda)} atual
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--secondary)' }}>
+                {SUBTIPOS_RF.find(x => x[0] === ativoAporte.subtipo)?.[1] || 'Renda Fixa'}
+                {ativoAporte.banco_nome ? ` · ${ativoAporte.banco_nome}` : ''}
+                {ativoAporte.taxa_contratada > 0 ? ` · ${ativoAporte.taxa_contratada}%` : ''}
+              </div>
+            </div>
+            <form onSubmit={salvarAporte}>
+              <div className="form-group">
+                <label className="form-label">Valor do aporte ({ativoAporte.moeda || 'BRL'})</label>
+                <input className="form-input" type="number" step="0.01" placeholder="Ex: 1000"
+                  value={aporteValor} onChange={e => setAporteValor(e.target.value)} required autoFocus />
+              </div>
+              {aporteValor && parseFloat(aporteValor) > 0 && (
+                <div style={{ background: '#EEF6FF', borderRadius: 8, padding: 10, marginBottom: 14, fontSize: 13, color: 'var(--blue)' }}>
+                  Novo total: {fmt((ativoAporte.valor || 0) + (parseFloat(aporteValor) || 0), ativoAporte.moeda)}
+                </div>
+              )}
+              <div className="form-group">
+                <label className="form-label">🏦 Debitar de qual banco? (opcional)</label>
+                <select className="form-select" value={aporteBancoId} onChange={e => setAporteBancoId(e.target.value)}>
+                  <option value="">Não movimentar banco</option>
+                  {bancos.map(b => <option key={b.id} value={b.id}>{iconeBanco(b.moeda)} {b.banco} — {fmt(b.saldo, b.moeda)}</option>)}
+                </select>
+                {aporteBancoId && aporteValor && (() => {
+                  const banco = bancos.find(b => b.id === aporteBancoId)
+                  const ns = (banco?.saldo || 0) - (parseFloat(aporteValor) || 0)
+                  return <div style={{ fontSize: 12, marginTop: 6, color: ns >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    Saldo após: {fmt(ns)} {ns < 0 ? '⚠️ Insuficiente' : '✓'}
+                  </div>
+                })()}
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setModalAporte(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-green" disabled={saving}>
+                  {saving ? 'Aportando...' : 'Confirmar aporte'}
                 </button>
               </div>
             </form>
