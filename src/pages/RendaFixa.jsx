@@ -36,10 +36,18 @@ export default function RendaFixa({ session, profile }) {
     e.preventDefault(); setSaving(true)
     const payload = { user_id: session.user.id, casal_code: profile.casal_code || session.user.id, nome, categoria: 'Renda Fixa', subtipo, dono, valor: parseFloat(valor), rentabilidade: parseFloat(rent) || 0, taxa_contratada: parseFloat(taxa) || 0, vencimento: venc || null, moeda: 'BRL' }
     try {
-      if (edit) await supabase.from('investimentos').update(payload).eq('id', edit.id)
-      else await supabase.from('investimentos').insert(payload)
+      let result
+      if (edit) {
+        result = await supabase.from('investimentos').update(payload).eq('id', edit.id)
+      } else {
+        result = await supabase.from('investimentos').insert(payload)
+      }
+      if (result.error) throw result.error
       setModal(false); loadData()
-    } catch (e) { alert(e.message) } finally { setSaving(false) }
+    } catch (e) {
+      console.error('Erro investimentos:', e)
+      alert('Erro ao salvar: ' + (e.message || JSON.stringify(e)))
+    } finally { setSaving(false) }
   }
 
   async function excluir(id) {

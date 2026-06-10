@@ -1,3 +1,4 @@
+import FaturaDetalhe from './FaturaDetalhe.jsx'
 import { useState, useEffect } from 'react'
 import { supabase, fmt, MESES } from '../supabase.js'
 
@@ -24,6 +25,7 @@ export default function Cartoes({ session, profile }) {
   const [bancoPagId, setBancoPagId] = useState('')
   const [bancoPagNome, setBancoPagNome] = useState('')
   const [saving, setSaving] = useState(false)
+  const [cartaoDetalhe, setCartaoDetalhe] = useState(null)
   const now = new Date()
 
   useEffect(() => { loadData() }, [])
@@ -160,6 +162,15 @@ export default function Cartoes({ session, profile }) {
 
   if (loading) return <div className="empty">Carregando...</div>
 
+  // Tela de detalhe da fatura
+  if (cartaoDetalhe) return (
+    <FaturaDetalhe
+      session={session} profile={profile}
+      cartao={cartaoDetalhe}
+      onVoltar={() => { setCartaoDetalhe(null); loadData() }}
+    />
+  )
+
   const faturaTotal = cartoes.reduce((s, c) => s + (c.fatura || 0), 0)
 
   return (
@@ -232,6 +243,7 @@ export default function Cartoes({ session, profile }) {
               )}
 
               <div className="row" style={{ gap: 6 }}>
+                <button className="btn btn-outline btn-sm" onClick={() => setCartaoDetalhe(c)}>📊 Fatura</button>
                 <button className="btn btn-outline btn-sm" onClick={() => openModal(c)}>✏️ Editar</button>
                 {(c.fatura || 0) > 0 && (!fatMes || !fatMes.paga) && (
                   <button className="btn btn-green btn-sm" onClick={() => {

@@ -41,10 +41,18 @@ export default function Metas({ session, profile }) {
     e.preventDefault(); setSaving(true)
     const payload = { user_id: session.user.id, casal_code: profile.casal_code || session.user.id, nome, descricao, valor_alvo: parseFloat(valorAlvo), valor_atual: parseFloat(valorAtual) || 0, dono, categoria, data_alvo: dataAlvo || null, ativa: true }
     try {
-      if (edit) await supabase.from('metas').update(payload).eq('id', edit.id)
-      else await supabase.from('metas').insert(payload)
+      let result
+      if (edit) {
+        result = await supabase.from('metas').update(payload).eq('id', edit.id)
+      } else {
+        result = await supabase.from('metas').insert(payload)
+      }
+      if (result.error) throw result.error
       setModal(false); loadData()
-    } catch (e) { alert(e.message) } finally { setSaving(false) }
+    } catch (e) {
+      console.error('Erro metas:', e)
+      alert('Erro ao salvar meta: ' + (e.message || JSON.stringify(e)))
+    } finally { setSaving(false) }
   }
 
   async function excluir(id) {
@@ -60,11 +68,16 @@ export default function Metas({ session, profile }) {
     const now = new Date()
     try {
       const novoAtual = (metaAporte.valor_atual || 0) + val
-      await supabase.from('metas').update({ valor_atual: novoAtual, updated_at: new Date() }).eq('id', metaAporte.id)
-      await supabase.from('aportes_metas').insert({ user_id: session.user.id, casal_code: profile.casal_code, meta_id: metaAporte.id, valor: val, quem: aporteQuem, observacao: aporteObs || null, mes: now.getMonth(), ano: now.getFullYear() })
+      const r1 = await supabase.from('metas').update({ valor_atual: novoAtual, updated_at: new Date() }).eq('id', metaAporte.id)
+      if (r1.error) throw r1.error
+      const r2 = await supabase.from('aportes_metas').insert({ user_id: session.user.id, casal_code: profile.casal_code || session.user.id, meta_id: metaAporte.id, valor: val, quem: aporteQuem, observacao: aporteObs || null, mes: now.getMonth(), ano: now.getFullYear() })
+      if (r2.error) throw r2.error
       setModalAporte(false); loadData()
       if (novoAtual >= metaAporte.valor_alvo) alert(`🎉 Meta "${metaAporte.nome}" concluída! Parabéns!`)
-    } catch (e) { alert(e.message) } finally { setSaving(false) }
+    } catch (e) {
+      console.error('Erro aporte:', e)
+      alert('Erro ao salvar aporte: ' + (e.message || JSON.stringify(e)))
+    } finally { setSaving(false) }
   }
 
   if (loading) return <div className="empty">Carregando...</div>
