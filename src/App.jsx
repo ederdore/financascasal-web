@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase.js'
-import Login from './pages/Login.jsx'
+import Landing from './pages/Landing.jsx'
 import Visao from './pages/Visao.jsx'
 import Bancos from './pages/Bancos.jsx'
 import Receitas from './pages/Receitas.jsx'
@@ -69,7 +69,22 @@ export default function App() {
     </div>
   )
 
-  if (!session || !profile) return <Login onLogin={() => loadProfile(session?.user?.id)} />
+  // Usuário não logado — mostra landing com login integrado
+  if (!session) return <Landing onLogin={() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) loadProfile(session.user.id)
+    })
+  }} />
+
+  // Logado mas sem perfil completo — redireciona para configurar
+  if (!profile) return (
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)' }}>
+      <div style={{ textAlign:'center' }}>
+        <div style={{ fontSize:48, marginBottom:16 }}>💑</div>
+        <p style={{ color:'var(--secondary)', marginBottom:16 }}>Carregando seu perfil...</p>
+      </div>
+    </div>
+  )
 
   const papelBg = profile.papel === 'eu' ? 'var(--eu-bg)' : 'var(--ela-bg)'
   const papelTxt = profile.papel === 'eu' ? 'var(--eu-text)' : 'var(--ela-text)'
