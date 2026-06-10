@@ -26,7 +26,15 @@ export default function Metas({ session, profile }) {
     const cc = profile.casal_code
     const cf = q => cc ? q.eq('casal_code', cc) : q.eq('user_id', session.user.id)
     const { data } = await cf(supabase.from('metas').select('*')).order('created_at', { ascending: false })
-    if (data) setMetas(data)
+    if (data) {
+      // Normaliza: usa valor_atual se existir, senão usa atual
+      const normalized = data.map(m => ({
+        ...m,
+        valor_atual: m.valor_atual ?? m.atual ?? 0,
+        valor_alvo: m.valor_alvo ?? 0,
+      }))
+      setMetas(normalized)
+    }
     setLoading(false)
   }
 
@@ -39,7 +47,19 @@ export default function Metas({ session, profile }) {
 
   async function salvar(e) {
     e.preventDefault(); setSaving(true)
-    const payload = { user_id: session.user.id, casal_code: profile.casal_code || session.user.id, nome, descricao, valor_alvo: parseFloat(valorAlvo), valor_atual: parseFloat(valorAtual) || 0, dono, categoria, data_alvo: dataAlvo || null, ativa: true }
+    const payload = {
+      user_id: session.user.id,
+      casal_code: profile.casal_code || session.user.id,
+      nome,
+      descricao: descricao || null,
+      valor_alvo: parseFloat(valorAlvo) || 0,
+      valor_atual: parseFloat(valorAtual) || 0,
+      atual: parseFloat(valorAtual) || 0,
+      dono,
+      categoria,
+      data_alvo: dataAlvo || null,
+      ativa: true,
+    }
     try {
       let result
       if (edit) {
@@ -68,7 +88,7 @@ export default function Metas({ session, profile }) {
     const now = new Date()
     try {
       const novoAtual = (metaAporte.valor_atual || 0) + val
-      const r1 = await supabase.from('metas').update({ valor_atual: novoAtual, updated_at: new Date() }).eq('id', metaAporte.id)
+      const r1 = await supabase.from('metas').update({ valor_atual: novoAtual, atual: novoAtual, updated_at: new Date() }).eq('id', metaAporte.id)
       if (r1.error) throw r1.error
       const r2 = await supabase.from('aportes_metas').insert({ user_id: session.user.id, casal_code: profile.casal_code || session.user.id, meta_id: metaAporte.id, valor: val, quem: aporteQuem, observacao: aporteObs || null, mes: now.getMonth(), ano: now.getFullYear() })
       if (r2.error) throw r2.error
