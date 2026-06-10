@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co'
-const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_PUBLICA'
+const SUPABASE_URL = 'https://cpombcvppitlgynqzhsr.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwb21iY3ZwcGl0bGd5bnF6aHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MzEwMzYsImV4cCI6MjA5MjMwNzAzNn0.qb7WC2lGELaK5C8Ga09Bhs3tHDL04sW2SeY_SFMoZ1A'
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 export const API_URL = 'https://financascasal-backend.vercel.app'
