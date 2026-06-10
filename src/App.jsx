@@ -14,6 +14,7 @@ import Metas from './pages/Metas.jsx'
 import Notificacoes from './pages/Notificacoes.jsx'
 import IA from './pages/IA.jsx'
 import Configuracoes from './pages/Configuracoes.jsx'
+import Admin from './pages/Admin.jsx'
 
 const TABS = [
   { id: 'visao',         icon: '◉',  label: 'Visão Geral' },
@@ -29,6 +30,7 @@ const TABS = [
   { id: 'notificacoes',  icon: '🔔', label: 'Notificações' },
   { id: 'ia',            icon: '🤖', label: 'IA' },
   { id: 'configuracoes', icon: '⚙️',  label: 'Configurações' },
+  { id: 'admin',         icon: '🛠️', label: 'Admin' },
 ]
 
 export default function App() {
@@ -91,7 +93,7 @@ export default function App() {
 
   const pages = { visao: Visao, bancos: Bancos, receitas: Receitas, despesas: Despesas,
     cartoes: Cartoes, contas: Contas, streaming: Streaming, rendafixa: RendaFixa, reserva: Reserva,
-    metas: Metas, notificacoes: Notificacoes, ia: IA, configuracoes: Configuracoes }
+    metas: Metas, notificacoes: Notificacoes, ia: IA, configuracoes: Configuracoes, admin: Admin }
   const PageComponent = pages[tab] || Visao
 
   return (

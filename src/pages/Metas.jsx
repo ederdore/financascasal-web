@@ -113,7 +113,22 @@ export default function Metas({ session, profile }) {
       })
       if (r2.error) throw r2.error
 
-      // 3. Debita do banco e registra no extrato (se banco selecionado)
+      // 3. Lança como despesa para aparecer no fluxo de caixa
+      const r3 = await supabase.from('despesas').insert({
+        user_id: session.user.id, casal_code: cc,
+        nome: `Aporte: ${metaAporte.nome}`,
+        valor: val,
+        categoria: 'Investimento',
+        quem: aporteQuem,
+        tipo: 'fixa',
+        pagamento_tipo: 'debito',
+        banco_id: aporteBancoId || null,
+        banco_nome: bancos.find(b => b.id === aporteBancoId)?.banco || '',
+        mes: now.getMonth(), ano: now.getFullYear(),
+      })
+      if (r3.error) throw r3.error
+
+      // 4. Debita do banco e registra no extrato (se banco selecionado)
       if (aporteBancoId) {
         const banco = bancos.find(b => b.id === aporteBancoId)
         if (banco) {

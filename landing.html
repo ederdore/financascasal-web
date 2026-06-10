@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinançasCasal — Finanças do casal, juntos e organizados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --verde:    #0D3D2B;
+  --verde-md: #1A5C40;
+  --verde-lt: #2E8B5A;
+  --dourado:  #C9A84C;
+  --dourado-lt: #E8C96A;
+  --creme:    #F5F0E8;
+  --creme-dk: #EDE5D5;
+  --off:      #FAFAF8;
+  --text:     #1A1A18;
+  --muted:    #5C5C52;
+  --border:   rgba(13,61,43,0.12);
+  --r:        14px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--off);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 64px;
+  background: rgba(250,250,248,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--verde); letter-spacing: -0.3px;
+}
+.nav-logo span { color: var(--dourado); }
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a {
+  font-size: 13px; color: var(--muted); text-decoration: none; font-weight: 500;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--verde); }
+.nav-cta {
+  background: var(--verde); color: #fff !important;
+  padding: 8px 20px; border-radius: 8px; font-size: 13px !important;
+  transition: background .2s !important;
+}
+.nav-cta:hover { background: var(--verde-md) !important; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-top: 64px;
+}
+
+.hero-left {
+  background: var(--verde);
+  padding: 80px 64px 80px 80px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.hero-left::before {
+  content: '';
+  position: absolute; top: -120px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--dourado);
+  margin-bottom: 20px;
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 4vw, 52px);
+  font-weight: 700; line-height: 1.15;
+  color: #fff; margin-bottom: 24px;
+  letter-spacing: -0.5px;
+}
+.hero-title em { font-style: italic; color: var(--dourado-lt); }
+
+.hero-sub {
+  font-size: 16px; color: rgba(255,255,255,0.72);
+  line-height: 1.7; margin-bottom: 48px;
+  max-width: 380px;
+}
+
+/* Stat animado */
+.hero-stat {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  background: rgba(255,255,255,0.07);
+  border: 0.5px solid rgba(201,168,76,0.3);
+  border-radius: 12px; padding: 16px 24px;
+  margin-bottom: 48px;
+}
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700;
+  color: var(--dourado-lt); letter-spacing: -1px;
+}
+.stat-label {
+  font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.4;
+  max-width: 160px;
+}
+
+/* Features mini */
+.hero-features {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.hero-feat {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; color: rgba(255,255,255,0.8);
+}
+.hero-feat-dot {
+  width: 6px; height: 6px; border-radius: 3px;
+  background: var(--dourado); flex-shrink: 0;
+}
+
+/* ── LOGIN PANEL ── */
+.hero-right {
+  background: var(--creme);
+  display: flex; align-items: center; justify-content: center;
+  padding: 80px 64px;
+  position: relative;
+}
+
+/* Foto de fundo sutil */
+.hero-right::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(245,240,232,0.0) 0%, rgba(245,240,232,0.95) 60%),
+    url('https://images.unsplash.com/photo-1554151228-14d9def656e4?w=800&q=60&fit=crop') center/cover no-repeat;
+  opacity: 0.35;
+}
+
+.login-panel {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 400px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(13,61,43,0.1);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(13,61,43,0.12);
+}
+
+.login-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 600;
+  color: var(--verde); margin-bottom: 6px;
+}
+.login-sub {
+  font-size: 13px; color: var(--muted); margin-bottom: 28px;
+}
+
+.tab-row {
+  display: flex; gap: 0;
+  background: var(--creme-dk);
+  border-radius: 10px; padding: 4px;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1; padding: 8px 12px; border: none;
+  background: transparent; cursor: pointer;
+  font-size: 13px; font-weight: 500;
+  color: var(--muted); border-radius: 7px;
+  transition: all .2s; font-family: 'Inter', sans-serif;
+}
+.tab-btn.active {
+  background: #fff; color: var(--verde);
+  box-shadow: 0 1px 4px rgba(13,61,43,0.1);
+}
+
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--verde); margin-bottom: 6px; letter-spacing: 0.3px;
+}
+.form-input {
+  width: 100%; padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px; font-size: 14px;
+  background: var(--off); color: var(--text);
+  font-family: 'Inter', sans-serif;
+  outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.form-input:focus {
+  border-color: var(--verde-lt);
+  box-shadow: 0 0 0 3px rgba(46,139,90,0.1);
+}
+
+.btn-primary-lg {
+  width: 100%; padding: 13px;
+  background: var(--verde); color: #fff;
+  border: none; border-radius: 11px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  transition: background .2s, transform .1s;
+  margin-top: 4px;
+}
+.btn-primary-lg:hover { background: var(--verde-md); }
+.btn-primary-lg:active { transform: scale(0.99); }
+
+.form-link {
+  display: block; text-align: center;
+  margin-top: 14px; font-size: 12px;
+  color: var(--muted); text-decoration: none;
+  cursor: pointer;
+}
+.form-link:hover { color: var(--verde); }
+.form-link span { color: var(--verde-lt); text-decoration: underline; }
+
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 18px 0; color: var(--muted); font-size: 12px;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 0.5px; background: var(--border);
+}
+
+.msg-box {
+  padding: 10px 14px; border-radius: 8px;
+  font-size: 13px; margin-bottom: 14px; display: none;
+}
+.msg-box.success { background: #E1F5EE; color: #085041; display: block; }
+.msg-box.error   { background: #FCEBEB; color: #791F1F; display: block; }
+
+.recover-link {
+  display: flex; justify-content: flex-end;
+  font-size: 11px; color: var(--verde-lt);
+  text-decoration: underline; cursor: pointer;
+  margin-top: -8px; margin-bottom: 14px; background: none; border: none;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── COMO FUNCIONA ── */
+.section {
+  padding: 100px 80px;
+}
+.section-alt { background: var(--creme); }
+
+.section-eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--verde-lt);
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3vw, 42px); font-weight: 700;
+  color: var(--verde); line-height: 1.2;
+  margin-bottom: 16px; letter-spacing: -0.3px;
+}
+.section-sub {
+  font-size: 16px; color: var(--muted);
+  max-width: 520px; line-height: 1.7; margin-bottom: 56px;
+}
+
+.features-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+}
+.feat-card {
+  background: #fff; border: 0.5px solid var(--border);
+  border-radius: 16px; padding: 28px;
+  transition: transform .2s, box-shadow .2s;
+}
+.feat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(13,61,43,0.1);
+}
+.feat-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--verde), var(--verde-lt));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 18px;
+}
+.feat-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 600;
+  color: var(--verde); margin-bottom: 10px;
+}
+.feat-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+/* ── COMO USAR ── */
+.steps-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+  margin-top: 56px;
+}
+.step { text-align: center; }
+.step-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px; font-weight: 700;
+  color: var(--creme-dk); line-height: 1;
+  margin-bottom: 16px; position: relative;
+  display: inline-block;
+}
+.step-num::after {
+  content: attr(data-num);
+  position: absolute; top: 0; left: 0; right: 0;
+  color: var(--dourado); opacity: 0.4;
+}
+.step-title { font-weight: 600; font-size: 15px; color: var(--verde); margin-bottom: 8px; }
+.step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── PREÇO ── */
+.pricing-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  max-width: 720px; margin: 0 auto;
+}
+.price-card {
+  background: #fff; border: 0.5px solid var(--border);
+  border-radius: 20px; padding: 36px;
+  position: relative; overflow: hidden;
+}
+.price-card.featured {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+.price-card.featured::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(201,168,76,0.2) 0%, transparent 70%);
+}
+.price-badge {
+  display: inline-block;
+  background: var(--dourado); color: var(--verde);
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 4px 10px;
+  border-radius: 20px; margin-bottom: 20px;
+}
+.price-name { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+.price-card.featured .price-name { color: rgba(255,255,255,0.6); }
+.price-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px; font-weight: 700;
+  color: var(--verde); line-height: 1; margin-bottom: 4px;
+}
+.price-card.featured .price-amount { color: #fff; }
+.price-period { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.price-card.featured .price-period { color: rgba(255,255,255,0.6); }
+.price-list { list-style: none; margin-bottom: 32px; }
+.price-list li {
+  font-size: 14px; color: var(--muted); padding: 6px 0;
+  border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.price-card.featured .price-list li { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.1); }
+.price-list li::before { content: '✓'; color: var(--verde-lt); font-weight: 700; flex-shrink: 0; }
+.price-card.featured .price-list li::before { color: var(--dourado-lt); }
+.price-list li.no::before { content: '—'; color: rgba(0,0,0,0.2); }
+.btn-price {
+  width: 100%; padding: 13px; border-radius: 11px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: all .2s;
+  border: 1px solid var(--verde); color: var(--verde);
+  background: transparent;
+}
+.btn-price:hover { background: var(--verde); color: #fff; }
+.btn-price-inv {
+  width: 100%; padding: 13px; border-radius: 11px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: all .2s;
+  border: none; background: var(--dourado); color: var(--verde);
+}
+.btn-price-inv:hover { background: var(--dourado-lt); }
+
+/* ── TESTIMONIAL ── */
+.testimonial-wrap {
+  max-width: 680px; margin: 0 auto; text-align: center;
+}
+.testimonial-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 2.5vw, 28px); font-weight: 400;
+  font-style: italic; color: var(--verde);
+  line-height: 1.5; margin-bottom: 32px;
+}
+.testimonial-quote span { color: var(--dourado); }
+.testimonial-author {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+}
+.author-avatar {
+  width: 48px; height: 48px; border-radius: 24px;
+  background: linear-gradient(135deg, var(--verde), var(--verde-lt));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.author-name { font-weight: 600; font-size: 14px; color: var(--verde); }
+.author-sub { font-size: 12px; color: var(--muted); }
+.stars { color: var(--dourado); font-size: 14px; letter-spacing: 2px; margin-bottom: 4px; }
+
+/* ── BANNER CTA ── */
+.cta-banner {
+  background: var(--verde);
+  padding: 80px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.cta-banner::before {
+  content: '';
+  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(201,168,76,0.12) 0%, transparent 70%);
+}
+.cta-banner-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3.5vw, 44px); font-weight: 700;
+  color: #fff; margin-bottom: 16px; position: relative;
+}
+.cta-banner-title em { font-style: italic; color: var(--dourado-lt); }
+.cta-banner-sub { font-size: 16px; color: rgba(255,255,255,0.65); margin-bottom: 36px; position: relative; }
+.cta-banner-btn {
+  display: inline-block; padding: 15px 40px;
+  background: var(--dourado); color: var(--verde);
+  border-radius: 11px; font-size: 15px; font-weight: 700;
+  text-decoration: none; transition: all .2s;
+  position: relative;
+}
+.cta-banner-btn:hover { background: var(--dourado-lt); transform: translateY(-1px); }
+
+/* ── FOOTER ── */
+footer {
+  background: #0A2E20;
+  padding: 56px 80px 32px;
+  color: rgba(255,255,255,0.6);
+}
+.footer-grid {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px; margin-bottom: 48px;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  color: #fff; margin-bottom: 12px;
+}
+.footer-logo span { color: var(--dourado); }
+.footer-desc { font-size: 13px; line-height: 1.7; max-width: 260px; }
+.footer-col-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+  margin-bottom: 16px;
+}
+.footer-links { list-style: none; }
+.footer-links li { margin-bottom: 10px; }
+.footer-links a {
+  font-size: 13px; color: rgba(255,255,255,0.55);
+  text-decoration: none; transition: color .2s;
+}
+.footer-links a:hover { color: #fff; }
+.footer-bottom {
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  padding-top: 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px;
+}
+.lgpd-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 11px; color: rgba(255,255,255,0.5);
+}
+
+/* ── RESPONSIVO ── */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-left { padding: 80px 40px 60px; }
+  .hero-right { padding: 60px 40px; min-height: 600px; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .steps-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .section { padding: 72px 40px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  footer { padding: 48px 40px 24px; }
+}
+@media (max-width: 640px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero-left { padding: 60px 24px 48px; }
+  .hero-right { padding: 40px 24px; }
+  .login-panel { padding: 28px 24px; }
+  .features-grid, .steps-grid, .pricing-grid { grid-template-columns: 1fr; }
+  .section { padding: 56px 24px; }
+  .cta-banner { padding: 60px 24px; }
+  footer, .footer-grid { padding: 40px 24px 20px; grid-template-columns: 1fr; gap: 28px; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+}
+
+/* ── ANIMAÇÕES ── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stat-num { animation: countUp 0.8s ease 0.3s both; }
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-title { animation: fadeSlide 0.7s ease 0.1s both; }
+.hero-sub   { animation: fadeSlide 0.7s ease 0.2s both; }
+.hero-stat  { animation: fadeSlide 0.7s ease 0.4s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Finanças<span>Casal</span></div>
+  <div class="nav-links">
+    <a href="#funcionalidades">Funcionalidades</a>
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#precos">Preços</a>
+    <a href="#funcionalidades" class="nav-cta">Começar grátis</a>
+  </div>
+</nav>
+
+<!-- HERO + LOGIN -->
+<section class="hero" id="inicio">
+  <!-- Esquerda — proposta de valor -->
+  <div class="hero-left">
+    <p class="hero-eyebrow">Para casais que pensam juntos</p>
+    <h1 class="hero-title">
+      O dinheiro do casal,<br>
+      <em>finalmente organizado.</em>
+    </h1>
+    <p class="hero-sub">
+      Despesas, metas, reserva de emergência e investimentos — tudo compartilhado em tempo real entre você e seu parceiro(a).
+    </p>
+    <div class="hero-stat">
+      <div class="stat-num" id="statNum">R$ 0</div>
+      <div class="stat-label">economizados em média no primeiro mês de uso</div>
+    </div>
+    <div class="hero-features">
+      <div class="hero-feat"><div class="hero-feat-dot"></div>Sincronização em tempo real entre vocês dois</div>
+      <div class="hero-feat"><div class="hero-feat-dot"></div>Análise financeira com IA personalizada</div>
+      <div class="hero-feat"><div class="hero-feat-dot"></div>App mobile + versão web + bot Telegram</div>
+      <div class="hero-feat"><div class="hero-feat-dot"></div>Dados protegidos pela LGPD</div>
+    </div>
+  </div>
+
+  <!-- Direita — painel de login -->
+  <div class="hero-right">
+    <div class="login-panel">
+      <div class="login-title">Bem-vindo(a) de volta</div>
+      <div class="login-sub">Entre na sua conta ou comece gratuitamente</div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="setTab('login')">Entrar</button>
+        <button class="tab-btn" onclick="setTab('cadastro')">Criar conta</button>
+      </div>
+
+      <div id="msgBox" class="msg-box"></div>
+
+      <!-- Login -->
+      <div id="formLogin">
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="form-input" type="email" id="loginEmail" placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input class="form-input" type="password" id="loginSenha" placeholder="••••••••" />
+        </div>
+        <button class="recover-link" onclick="setTab('recuperar')">Esqueci minha senha</button>
+        <button class="btn-primary-lg" onclick="handleLogin()">Entrar no app →</button>
+        <a class="form-link" onclick="setTab('cadastro')">Não tem conta? <span>Cadastre-se grátis</span></a>
+      </div>
+
+      <!-- Cadastro -->
+      <div id="formCadastro" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Seu nome</label>
+          <input class="form-input" type="text" id="cadNome" placeholder="Como quer ser chamado(a)?" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="form-input" type="email" id="cadEmail" placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input class="form-input" type="password" id="cadSenha" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <button class="btn-primary-lg" onclick="handleCadastro()">Criar minha conta gratuitamente →</button>
+        <a class="form-link" onclick="setTab('login')">Já tem conta? <span>Entrar</span></a>
+      </div>
+
+      <!-- Recuperar senha -->
+      <div id="formRecuperar" style="display:none">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+          Informe seu e-mail e enviaremos um link para redefinir sua senha.
+        </p>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="form-input" type="email" id="recEmail" placeholder="seu@email.com" />
+        </div>
+        <button class="btn-primary-lg" onclick="handleRecuperar()">Enviar link de recuperação →</button>
+        <a class="form-link" onclick="setTab('login')">← Voltar para o login</a>
+      </div>
+
+      <!-- Segurança -->
+      <div style="display:flex;align-items:center;gap:8px;margin-top:20px;padding-top:20px;border-top:0.5px solid var(--border);">
+        <span style="font-size:11px;color:var(--muted)">🔒 Dados criptografados · Protegido pela LGPD</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNCIONALIDADES -->
+<section class="section" id="funcionalidades">
+  <div class="section-eyebrow">Tudo em um só lugar</div>
+  <h2 class="section-title">Feito para a vida financeira real de um casal</h2>
+  <p class="section-sub">Não é mais uma planilha. É uma plataforma completa que entende que vocês dois têm rendas, gastos e sonhos diferentes — e precisam trabalhar juntos.</p>
+
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">💑</div>
+      <div class="feat-title">EU e ELA separados</div>
+      <div class="feat-desc">Cada um tem seu perfil, sua renda e sua visão — mas compartilham o mesmo painel em tempo real.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💳</div>
+      <div class="feat-title">Cartões e faturas</div>
+      <div class="feat-desc">Acompanhe a fatura crescendo em tempo real. Pague com 1 clique e o banco é debitado automaticamente.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">Metas financeiras</div>
+      <div class="feat-desc">Viagem, casa própria, carro novo. Defina metas, aporte mensalmente e veja o progresso de cada um.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🛡️</div>
+      <div class="feat-title">Reserva de emergência</div>
+      <div class="feat-desc">Calculadora automática de 6 ou 12 meses com base nas suas despesas fixas reais. Em BRL e USD.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🤖</div>
+      <div class="feat-title">IA financeira</div>
+      <div class="feat-desc">Análise mensal personalizada com diagnóstico, alertas e sugestões práticas baseados nos seus dados reais.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">✈️</div>
+      <div class="feat-title">Bot no Telegram</div>
+      <div class="feat-desc">"Gastei R$ 45 no mercado" — o bot entende e lança automaticamente. Sem abrir o app.</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section class="section section-alt" id="como-funciona">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-eyebrow">Simples de começar</div>
+    <h2 class="section-title">Três minutos para organizar as finanças do casal</h2>
+
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num" data-num="1">1</div>
+        <div class="step-title">Crie sua conta</div>
+        <div class="step-desc">Cadastro gratuito em segundos. Nenhum cartão necessário para começar.</div>
+      </div>
+      <div class="step">
+        <div class="step-num" data-num="2">2</div>
+        <div class="step-title">Convide seu parceiro(a)</div>
+        <div class="step-desc">Compartilhe o código do casal. Vocês dois passam a ver o mesmo painel.</div>
+      </div>
+      <div class="step">
+        <div class="step-num" data-num="3">3</div>
+        <div class="step-title">Configure seus bancos</div>
+        <div class="step-desc">Adicione seus bancos e cartões. Cada lançamento debita automaticamente.</div>
+      </div>
+      <div class="step">
+        <div class="step-num" data-num="4">4</div>
+        <div class="step-title">Comece a lançar</div>
+        <div class="step-desc">App mobile, versão web ou Telegram. Registre onde for mais conveniente.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPOIMENTO -->
+<section class="section" style="padding-top:80px;padding-bottom:80px;">
+  <div class="testimonial-wrap">
+    <div class="stars">★★★★★</div>
+    <div class="testimonial-quote">
+      "Pela primeira vez conseguimos ter uma conversa sobre dinheiro <span>sem brigar.</span> O app colocou tudo na mesa de um jeito que os dois entendemos."
+    </div>
+    <div class="testimonial-author">
+      <div class="author-avatar">💑</div>
+      <div>
+        <div class="stars" style="font-size:11px;letter-spacing:1px;margin-bottom:2px">★★★★★</div>
+        <div class="author-name">João & Maria</div>
+        <div class="author-sub">Usuários desde janeiro de 2025 · São Paulo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PREÇOS -->
+<section class="section section-alt" id="precos">
+  <div style="text-align:center;max-width:1100px;margin:0 auto;">
+    <div class="section-eyebrow">Transparente e justo</div>
+    <h2 class="section-title" style="margin:0 auto 16px">Comece grátis, evolua quando quiser</h2>
+    <p class="section-sub" style="margin:0 auto 56px">Sem surpresas. Sem cartão para o plano gratuito. Cancele quando quiser.</p>
+
+    <div class="pricing-grid" style="margin:0 auto;">
+      <!-- Free -->
+      <div class="price-card">
+        <div class="price-name">Plano Gratuito</div>
+        <div class="price-amount">R$ 0</div>
+        <div class="price-period">para sempre · sem cartão</div>
+        <ul class="price-list">
+          <li>1 banco e 1 cartão</li>
+          <li>Lançamento de despesas e receitas</li>
+          <li>Metas e reserva de emergência</li>
+          <li>Código do casal compartilhado</li>
+          <li class="no">IA financeira</li>
+          <li class="no">Bot Telegram</li>
+          <li class="no">Relatório PDF mensal</li>
+        </ul>
+        <button class="btn-price" onclick="setTab('cadastro');document.querySelector('.hero-right').scrollIntoView({behavior:'smooth'})">
+          Começar grátis
+        </button>
+      </div>
+
+      <!-- Premium -->
+      <div class="price-card featured">
+        <div class="price-badge">Mais popular</div>
+        <div class="price-name">Plano Premium</div>
+        <div class="price-amount">R$ 24</div>
+        <div class="price-period">por casal · mês · cancele quando quiser</div>
+        <ul class="price-list">
+          <li>Bancos e cartões ilimitados</li>
+          <li>Lançamentos ilimitados</li>
+          <li>Metas, reserva e renda fixa</li>
+          <li>IA financeira com Groq</li>
+          <li>Bot Telegram com IA</li>
+          <li>Relatório PDF mensal</li>
+          <li>Suporte prioritário</li>
+        </ul>
+        <button class="btn-price-inv" onclick="setTab('cadastro');document.querySelector('.hero-right').scrollIntoView({behavior:'smooth'})">
+          Experimentar 14 dias grátis →
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <h2 class="cta-banner-title">Prontos para organizar<br><em>as finanças juntos?</em></h2>
+  <p class="cta-banner-sub">Junte-se a casais que já pararam de discutir sobre dinheiro.</p>
+  <a href="#inicio" class="cta-banner-btn" onclick="document.querySelector('.hero-right').scrollIntoView({behavior:'smooth'});return false">
+    Criar conta grátis →
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo">Finanças<span>Casal</span></div>
+      <p class="footer-desc">A plataforma financeira feita para casais que querem construir um futuro próspero juntos.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Produto</div>
+      <ul class="footer-links">
+        <li><a href="#funcionalidades">Funcionalidades</a></li>
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#precos">Preços</a></li>
+        <li><a href="#">App mobile</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Legal</div>
+      <ul class="footer-links">
+        <li><a href="/politica-privacidade.html">Política de Privacidade</a></li>
+        <li><a href="/politica-privacidade.html#termos">Termos de Uso</a></li>
+        <li><a href="#">LGPD</a></li>
+        <li><a href="#">Cookies</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Contato</div>
+      <ul class="footer-links">
+        <li><a href="mailto:contato@financascasal.com.br">contato@financascasal.com.br</a></li>
+        <li><a href="mailto:privacidade@financascasal.com.br">privacidade@financascasal.com.br</a></li>
+        <li><a href="#">Suporte</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 FinançasCasal. Todos os direitos reservados.</span>
+    <div class="lgpd-badge">🔒 Dados protegidos pela LGPD</div>
+  </div>
+</footer>
+
+<script>
+// ── Tabs do login ──
+function setTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById('formLogin').style.display = 'none'
+  document.getElementById('formCadastro').style.display = 'none'
+  document.getElementById('formRecuperar').style.display = 'none'
+  clearMsg()
+  if (tab === 'login') {
+    document.querySelectorAll('.tab-btn')[0].classList.add('active')
+    document.getElementById('formLogin').style.display = 'block'
+  } else if (tab === 'cadastro') {
+    document.querySelectorAll('.tab-btn')[1].classList.add('active')
+    document.getElementById('formCadastro').style.display = 'block'
+  } else if (tab === 'recuperar') {
+    document.getElementById('formRecuperar').style.display = 'block'
+  }
+}
+
+function showMsg(texto, tipo) {
+  const el = document.getElementById('msgBox')
+  el.textContent = texto
+  el.className = 'msg-box ' + tipo
+}
+function clearMsg() {
+  const el = document.getElementById('msgBox')
+  el.className = 'msg-box'; el.textContent = ''
+}
+
+// ── Integração Supabase ──
+const SUPABASE_URL = 'VITE_SUPABASE_URL_PLACEHOLDER'
+const SUPABASE_KEY = 'VITE_SUPABASE_KEY_PLACEHOLDER'
+const APP_URL = '/app' // URL do app React após login
+
+async function supabaseFetch(path, body) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+    body: JSON.stringify(body)
+  })
+  return res.json()
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim()
+  const senha = document.getElementById('loginSenha').value
+  if (!email || !senha) { showMsg('Preencha e-mail e senha', 'error'); return }
+  clearMsg()
+  const btn = event.target; btn.textContent = 'Entrando...'; btn.disabled = true
+  try {
+    const data = await supabaseFetch('/token?grant_type=password', { email, password: senha })
+    if (data.error || data.error_description) throw new Error(data.error_description || data.error)
+    // Redireciona para o app
+    window.location.href = APP_URL
+  } catch (e) {
+    const msgs = {
+      'Invalid login credentials': 'E-mail ou senha incorretos.',
+      'Email not confirmed': 'Confirme seu e-mail antes de entrar.',
+    }
+    showMsg(msgs[e.message] || e.message, 'error')
+  } finally { btn.textContent = 'Entrar no app →'; btn.disabled = false }
+}
+
+async function handleCadastro() {
+  const nome = document.getElementById('cadNome').value.trim()
+  const email = document.getElementById('cadEmail').value.trim()
+  const senha = document.getElementById('cadSenha').value
+  if (!nome || !email || !senha) { showMsg('Preencha todos os campos', 'error'); return }
+  if (senha.length < 6) { showMsg('Senha deve ter mínimo 6 caracteres', 'error'); return }
+  clearMsg()
+  const btn = event.target; btn.textContent = 'Criando conta...'; btn.disabled = true
+  try {
+    const data = await supabaseFetch('/signup', { email, password: senha })
+    if (data.error || data.error_description) throw new Error(data.error_description || data.error)
+    showMsg('✅ Conta criada! Verifique seu e-mail para confirmar e depois entre.', 'success')
+    setTab('login')
+    document.getElementById('loginEmail').value = email
+  } catch (e) {
+    const msgs = { 'User already registered': 'Este e-mail já está cadastrado.' }
+    showMsg(msgs[e.message] || e.message, 'error')
+  } finally { btn.textContent = 'Criar minha conta gratuitamente →'; btn.disabled = false }
+}
+
+async function handleRecuperar() {
+  const email = document.getElementById('recEmail').value.trim()
+  if (!email) { showMsg('Informe seu e-mail', 'error'); return }
+  clearMsg()
+  const btn = event.target; btn.textContent = 'Enviando...'; btn.disabled = true
+  try {
+    await supabaseFetch('/recover', { email })
+    showMsg('✅ Link enviado! Verifique seu e-mail.', 'success')
+  } catch (e) { showMsg('Erro ao enviar: ' + e.message, 'error') }
+  finally { btn.textContent = 'Enviar link de recuperação →'; btn.disabled = false }
+}
+
+// ── Animação do contador ──
+function animateCount(el, target, duration = 1800) {
+  const start = Date.now()
+  const tick = () => {
+    const elapsed = Date.now() - start
+    const progress = Math.min(elapsed / duration, 1)
+    const ease = 1 - Math.pow(1 - progress, 3)
+    const current = Math.floor(ease * target)
+    el.textContent = 'R$ ' + current.toLocaleString('pt-BR')
+    if (progress < 1) requestAnimationFrame(tick)
+  }
+  tick()
+}
+
+// Inicia animação quando o stat fica visível
+const statEl = document.getElementById('statNum')
+const obs = new IntersectionObserver(([entry]) => {
+  if (entry.isIntersecting) { animateCount(statEl, 3200); obs.disconnect() }
+}, { threshold: 0.5 })
+obs.observe(statEl)
+
+// Scroll suave para âncoras
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'))
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+  })
+})
+</script>
+</body>
+</html>
