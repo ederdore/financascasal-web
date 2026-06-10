@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, CATS_DESP_PADRAO, CAT_ICONS, MESES, MESES_CURTO, carregarCategorias } from '../supabase.js'
+import { useAIToast, AIToast } from '../components/AIToast.jsx'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const COLORS = ['#1D9E75','#178DD1','#EF9F27','#E24B4A','#7F77DD','#2E7D32','#993556','#FF6B35','#4ECDC4']
@@ -40,6 +41,7 @@ export default function Despesas({ session, profile }) {
   const [catsCustom, setCatsCustom] = useState([])
   const [saving, setSaving] = useState(false)
   const now = new Date()
+  const { toast, sugerirIA, dispensar } = useAIToast()
 
   useEffect(() => { loadData() }, [])
 
@@ -109,6 +111,11 @@ export default function Despesas({ session, profile }) {
         else await supabase.from('despesas').insert(payload)
       }
       setModal(false); loadData()
+
+      // Sugestão da IA após lançamento
+      const totalMes = despesas.filter(d => d.mes === now.getMonth() && d.ano === now.getFullYear()).reduce((s, d) => s + d.valor, 0)
+      sugerirIA({ tipo: 'despesa', nome, valor: v, categoria: cat, quem, contexto: { totalMes: totalMes + v } })
+
     } catch (e) { alert(e.message) } finally { setSaving(false) }
   }
 
@@ -445,6 +452,7 @@ export default function Despesas({ session, profile }) {
           </div>
         </div>
       )}
+      <AIToast toast={toast} onDispensar={dispensar} />
     </div>
   )
 }

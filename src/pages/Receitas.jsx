@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, TIPOS_REC, MESES } from '../supabase.js'
+import { useAIToast, AIToast } from '../components/AIToast.jsx'
 
 export default function Receitas({ session, profile }) {
   const [receitas, setReceitas] = useState([])
@@ -27,6 +28,7 @@ export default function Receitas({ session, profile }) {
   const [rAtiva, setRAtiva] = useState(true)
   const [saving, setSaving] = useState(false)
   const now = new Date()
+  const { toast, sugerirIA, dispensar } = useAIToast()
 
   useEffect(() => { loadData() }, [])
 
@@ -79,6 +81,10 @@ export default function Receitas({ session, profile }) {
         }
       }
       setModal(false); loadData()
+
+      // Sugestão da IA após receita
+      if (!edit) sugerirIA({ tipo: 'receita', nome: TIPOS_REC.find(t => t[0] === tipo)?.[1] || tipo, valor: parseFloat(valor), categoria: tipo, quem, contexto: { pctReserva: profile.pct_reserva || 5 } })
+
     } catch (e) { alert(e.message) } finally { setSaving(false) }
   }
 
@@ -121,6 +127,7 @@ export default function Receitas({ session, profile }) {
       }
     }
     alert(`✅ ${fmt(r.valor)} lançado!`); loadData()
+    sugerirIA({ tipo: 'receita', nome: r.nome, valor: r.valor, categoria: r.tipo, quem: r.quem, contexto: { pctReserva: profile.pct_reserva || 5 } })
   }
 
   const recMes = receitas.filter(r => r.mes === now.getMonth() && r.ano === now.getFullYear())
@@ -284,6 +291,7 @@ export default function Receitas({ session, profile }) {
           </div>
         </div>
       )}
+      <AIToast toast={toast} onDispensar={dispensar} />
     </div>
   )
 }
