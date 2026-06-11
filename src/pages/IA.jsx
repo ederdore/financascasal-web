@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt } from '../supabase.js'
-import { OBJETIVOS, buildPromptAnalise, buildPromptNotificacoes, chamarIA } from '../components/IAEngine.js'
+import { OBJETIVOS, buildPromptAnalise, buildPromptNotificacoes, chamarIA, buscarMemoriaPerguntas, formatarMemoria } from '../components/IAEngine.js'
+import { useComparativoFase, ComparativoFase } from '../components/ComparativoFases.jsx'
+import { useFaseAtual } from '../components/FasesFinanceiras.jsx'
 
 const TIPO_CORES = {
   alerta:    { bg: 'var(--red-bg)',    color: 'var(--red)',   icon: '⚠️' },
@@ -20,6 +22,8 @@ export default function IA({ session, profile }) {
 
   const objetivo = profile.objetivo || 'controle'
   const obj      = OBJETIVOS[objetivo]
+  const { fase }  = useFaseAtual(session, profile)
+  const comparativo = useComparativoFase(profile, fase)
 
   useEffect(() => { carregarDados() }, [])
 
@@ -62,7 +66,10 @@ export default function IA({ session, profile }) {
     if (!dados) return
     setLoadingA(true); setErroA(''); setAnalise('')
     try {
-      const prompt = buildPromptAnalise({ objetivo, dados })
+      // Carrega memória das perguntas mensais para contexto
+      const perguntas = await buscarMemoriaPerguntas(supabase, profile.casal_code, 6)
+      const memoria = formatarMemoria(perguntas)
+      const prompt = buildPromptAnalise({ objetivo, dados, memoria })
       const plano = profile.plano || 'free'
       const resultado = await chamarIA(prompt, plano)
       setAnalise(resultado)
@@ -270,6 +277,16 @@ export default function IA({ session, profile }) {
           )}
         </div>
       </div>
+      {/* Comparativo anônimo com casais na mesma fase */}
+      {comparativo && dados && (
+        <div style={{ marginTop: 16 }}>
+          <ComparativoFase
+            comparativo={comparativo}
+            dadosUsuario={{ totalDesp: dados.totalDesp, totalRec: dados.totalRec }}
+            fase={fase}
+          />
+        </div>
+      )}
     </div>
   )
 }

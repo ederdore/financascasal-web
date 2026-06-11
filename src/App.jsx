@@ -106,11 +106,10 @@ const TABS = [
   { id: 'admin',         icon: 'admin',         label: 'Admin' },
 ]
 
-function NavIcon({ id, active }) {
+function NavIcon({ id }) {
   return (
     <div
       className="icon"
-      style={{ filter: active ? 'invert(1)' : 'none' }}
       dangerouslySetInnerHTML={{ __html: ICONS[id] || '' }}
     />
   )
@@ -209,21 +208,21 @@ export default function App() {
           <div className="nav-section-label">Finanças</div>
           {TABS.slice(0, 6).map(t => (
             <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-              <NavIcon id={t.id} active={tab === t.id} />
+              <NavIcon id={t.id} />
               <span>{t.label}</span>
             </div>
           ))}
           <div className="nav-section-label">Investimentos</div>
           {TABS.slice(6, 10).map(t => (
             <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-              <NavIcon id={t.id} active={tab === t.id} />
+              <NavIcon id={t.id} />
               <span>{t.label}</span>
             </div>
           ))}
           <div className="nav-section-label">Conta</div>
           {TABS.slice(10).map(t => (
             <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-              <NavIcon id={t.id} active={tab === t.id} />
+              <NavIcon id={t.id} />
               <span>{t.label}</span>
             </div>
           ))}
@@ -255,7 +254,7 @@ export default function App() {
         <div className="topbar">
           <div className="topbar-left">
             <div className="topbar-page-icon">
-              <div style={{ width:18, height:18 }} dangerouslySetInnerHTML={{ __html: ICONS[tab] || '' }} />
+              <div style={{ width:18, height:18, color:'var(--secondary)' }} dangerouslySetInnerHTML={{ __html: ICONS[tab] || '' }} />
             </div>
             <h2>{TABS.find(t => t.id === tab)?.label}</h2>
           </div>

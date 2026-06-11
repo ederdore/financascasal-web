@@ -125,14 +125,29 @@ input, select, textarea { font-family: inherit; }
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 15px;
   background: var(--border);
   transition: all 0.12s;
+  color: var(--secondary);
+}
+
+.nav-item .icon svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.nav-item:hover .icon {
+  background: var(--separator);
+  color: var(--primary);
 }
 
 .nav-item.active .icon {
   background: var(--primary);
-  font-size: 14px;
+  color: #fff;
+}
+
+.nav-item.active .icon svg {
+  stroke: #fff;
 }
 
 .nav-section-label {

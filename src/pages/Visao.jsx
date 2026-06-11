@@ -5,6 +5,7 @@ import { PerguntaMensal } from '../components/PerguntaMensal.jsx'
 import { ConquistasRecentes } from '../components/Conquistas.jsx'
 import { Medidor502030 } from '../components/Regra502030.jsx'
 import { CardFases, useFaseAtual } from '../components/FasesFinanceiras.jsx'
+import { useComparativoFase, ComparativoFase } from '../components/ComparativoFases.jsx'
 
 const COLORS = ['#1D9E75','#178DD1','#EF9F27','#E24B4A','#7F77DD','#2E7D32','#993556']
 
@@ -14,6 +15,7 @@ export default function Visao({ session, profile }) {
 
   useEffect(() => { loadData() }, [])
   const { fase, progressoProxima } = useFaseAtual(session, profile)
+  const comparativo = useComparativoFase(profile, fase)
 
   async function loadData() {
     const uid = session.user.id
@@ -238,6 +240,17 @@ export default function Visao({ session, profile }) {
         <Medidor502030 despesas={despesas} receitas={receitas} />
         <CardFases fase={fase} progressoProxima={progressoProxima} />
       </div>
+
+      {/* Comparativo anônimo */}
+      {comparativo && (
+        <div style={{ marginTop: 12 }}>
+          <ComparativoFase
+            comparativo={comparativo}
+            dadosUsuario={{ totalDesp, totalRec: data.receitas.reduce((s,r)=>s+r.valor,0) }}
+            fase={fase}
+          />
+        </div>
+      )}
 
       {/* Pergunta mensal + conquistas */}
       <div className="grid-2" style={{ marginTop: 12 }}>

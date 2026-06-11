@@ -42,7 +42,7 @@ export const OBJETIVOS = {
 }
 
 // Constrói prompt contextualizado por objetivo
-export function buildPromptAnalise({ objetivo, dados }) {
+export function buildPromptAnalise({ objetivo, dados, memoria = '' }) {
   const obj = OBJETIVOS[objetivo] || OBJETIVOS.controle
   const { totalRec, totalDesp, saldo, cats, saldoBancos, faturas, reserva, investimentos, metas, pctReserva } = dados
 
@@ -82,7 +82,7 @@ Responda em português com 4 blocos EXATAMENTE neste formato:
 🚀 PRÓXIMO MÊS
 [1 meta concreta com número: ex "Guardar R$X a mais" ou "Reduzir X categoria em Y%"]
 
-Máximo 200 palavras. Seja direto, sem introduções.`
+Máximo 200 palavras. Seja direto, sem introduções.${memoria}`
 }
 
 export function buildPromptToast({ objetivo, tipo, nome, valor, categoria, totalMes, pctReserva }) {
@@ -121,6 +121,34 @@ Responda APENAS JSON válido (sem markdown):
   {"tipo": "alerta|dica|conquista", "titulo": "texto curto", "mensagem": "1 frase de orientação", "prioridade": "alta|media|baixa"},
   {"tipo": "alerta|dica|conquista", "titulo": "texto curto", "mensagem": "1 frase de orientação", "prioridade": "alta|media|baixa"}
 ]`
+}
+
+// Busca histórico de perguntas mensais para contexto da IA
+export async function buscarMemoriaPerguntas(supabaseClient, casalCode, limite = 6) {
+  try {
+    const { data } = await supabaseClient
+      .from('perguntas_mensais')
+      .select('mes, ano, pergunta, resposta, profiles(papel)')
+      .eq('casal_code', casalCode)
+      .not('resposta', 'is', null)
+      .order('ano', { ascending: false })
+      .order('mes', { ascending: false })
+      .limit(limite)
+    return data || []
+  } catch { return [] }
+}
+
+// Formata memória de perguntas como contexto para a IA
+export function formatarMemoria(perguntas) {
+  if (!perguntas?.length) return ''
+  const MESES_CURTO = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+  const linhas = perguntas.map(p =>
+    `${MESES_CURTO[p.mes]}/${p.ano} — ${p.pergunta}: "${p.resposta}"`
+  )
+  return `
+HISTÓRICO DE REFLEXÕES DO CASAL (últimos meses):
+${linhas.join('
+')}`
 }
 
 // Chamada à API — passa o plano para o backend escolher o provider
