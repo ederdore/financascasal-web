@@ -1,191 +1,275 @@
-import { useState } from 'react'
-import { supabase, fmt, API_URL } from '../supabase.js'
+import { useState, useEffect } from 'react'
+import { supabase, fmt } from '../supabase.js'
+import { OBJETIVOS, buildPromptAnalise, buildPromptNotificacoes, chamarIA } from '../components/IAEngine.js'
+
+const TIPO_CORES = {
+  alerta:    { bg: 'var(--red-bg)',    color: 'var(--red)',   icon: '⚠️' },
+  dica:      { bg: 'var(--blue-bg)',   color: 'var(--blue)',  icon: '💡' },
+  conquista: { bg: 'var(--green-bg)',  color: 'var(--green)', icon: '🏆' },
+}
 
 export default function IA({ session, profile }) {
-  const [analise, setAnalise] = useState('')
-  const [dicas, setDicas] = useState('')
-  const [loadingAnalise, setLoadingAnalise] = useState(false)
-  const [loadingDicas, setLoadingDicas] = useState(false)
-  const [erroAnalise, setErroAnalise] = useState('')
-  const [erroDicas, setErroDicas] = useState('')
+  const [analise, setAnalise]           = useState('')
+  const [notifs, setNotifs]             = useState([])
+  const [loadingAnalise, setLoadingA]   = useState(false)
+  const [loadingNotifs, setLoadingN]    = useState(false)
+  const [erroAnalise, setErroA]         = useState('')
+  const [erroNotifs, setErroN]          = useState('')
+  const [dados, setDados]               = useState(null)
+  const [loadingDados, setLoadingDados] = useState(true)
 
-  async function chamarIA(prompt) {
-    const url = `${API_URL}/api/analise`
-    console.log('Chamando IA em:', url)
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
-    })
-    if (!response.ok) {
-      const txt = await response.text()
-      throw new Error(`HTTP ${response.status}: ${txt}`)
-    }
-    const data = await response.json()
-    return data.resultado || data.resposta || data.content || JSON.stringify(data)
+  const objetivo = profile.objetivo || 'controle'
+  const obj      = OBJETIVOS[objetivo]
+
+  useEffect(() => { carregarDados() }, [])
+
+  async function carregarDados() {
+    setLoadingDados(true)
+    const uid = session.user.id
+    const cc  = profile.casal_code
+    const cf  = q => cc ? q.eq('casal_code', cc) : q.eq('user_id', uid)
+    const now = new Date()
+    try {
+      const [desp, rec, cartoes, bancos, reservaData, invData, metasData] = await Promise.all([
+        cf(supabase.from('despesas').select('valor,categoria')).eq('mes', now.getMonth()).eq('ano', now.getFullYear()),
+        cf(supabase.from('receitas').select('valor')).eq('mes', now.getMonth()).eq('ano', now.getFullYear()),
+        cf(supabase.from('cartoes').select('fatura')),
+        cf(supabase.from('contas_banco').select('saldo')),
+        supabase.from('reserva').select('atual,meta').eq('user_id', uid).maybeSingle(),
+        cf(supabase.from('investimentos').select('valor')),
+        cf(supabase.from('metas').select('id').eq('ativa', true)),
+      ])
+      const totalRec  = (rec.data  || []).reduce((s,r) => s+r.valor, 0)
+      const totalDesp = (desp.data || []).reduce((s,d) => s+d.valor, 0)
+      const cats = {}; (desp.data||[]).forEach(d => { cats[d.categoria] = (cats[d.categoria]||0)+d.valor })
+      const res = reservaData.data || { atual:0, meta:30000 }
+      res.pct = res.meta > 0 ? (res.atual/res.meta)*100 : 0
+      const d = {
+        totalRec, totalDesp, saldo: totalRec-totalDesp, cats,
+        saldoBancos: (bancos.data||[]).reduce((s,b)=>s+b.saldo,0),
+        faturas:     (cartoes.data||[]).reduce((s,c)=>s+(c.fatura||0),0),
+        reserva:     res,
+        investimentos: (invData.data||[]).reduce((s,i)=>s+i.valor,0),
+        metas:       (metasData.data||[]).length,
+        pctReserva:  profile.pct_reserva || 5,
+      }
+      setDados(d)
+    } catch(e) { console.error(e) }
+    finally { setLoadingDados(false) }
   }
 
   async function gerarAnalise() {
-    setLoadingAnalise(true); setErroAnalise(''); setAnalise('')
-    const uid = session.user.id
-    const cc = profile.casal_code
-    const cf = q => cc ? q.eq('casal_code', cc) : q.eq('user_id', uid)
-    const now = new Date()
+    if (!dados) return
+    setLoadingA(true); setErroA(''); setAnalise('')
     try {
-      const [desp, rec, cartoes, bancos, reserva, investimentos] = await Promise.all([
-        cf(supabase.from('despesas').select('*')).eq('mes', now.getMonth()).eq('ano', now.getFullYear()),
-        cf(supabase.from('receitas').select('*')).eq('mes', now.getMonth()).eq('ano', now.getFullYear()),
-        cf(supabase.from('cartoes').select('*')),
-        cf(supabase.from('contas_banco').select('*')),
-        supabase.from('reserva').select('*').eq('user_id', uid).maybeSingle(),
-        cf(supabase.from('investimentos').select('*')),
-      ])
-      const totalRec  = (rec.data  || []).reduce((s, r) => s + r.valor, 0)
-      const totalDesp = (desp.data || []).reduce((s, d) => s + d.valor, 0)
-      const cats = {}; (desp.data || []).forEach(d => { cats[d.categoria] = (cats[d.categoria] || 0) + d.valor })
-      const catStr = Object.entries(cats).map(([k, v]) => `${k}: ${fmt(v)}`).join(', ')
-      const res = reserva.data || { atual: 0, meta: 30000 }
-      const faturas = (cartoes.data || []).reduce((s, c) => s + (c.fatura || 0), 0)
-      const saldoBancos = (bancos.data || []).reduce((s, b) => s + b.saldo, 0)
-      const totalInv = (investimentos.data || []).reduce((s, i) => s + i.valor, 0)
-
-      const prompt = `Você é um consultor financeiro para casais brasileiros. Analise os dados abaixo e responda em português:
-
-DADOS DO MÊS:
-- Receitas: ${fmt(totalRec)}
-- Despesas: ${fmt(totalDesp)}
-- Saldo: ${fmt(totalRec - totalDesp)}
-- Gastos por categoria: ${catStr || 'sem dados'}
-- Renda Fixa: ${fmt(totalInv)}
-- Saldo bancos: ${fmt(saldoBancos)}
-- Faturas cartão: ${fmt(faturas)}
-- Reserva: ${fmt(res.atual)} de ${fmt(res.meta)}
-- Objetivo do casal: ${profile.objetivo || 'controle financeiro'}
-
-Responda com 4 blocos curtos:
-📊 Diagnóstico (situação atual)
-⚠️ Atenção (pontos de alerta)
-💡 Sugestão (ação prática)
-🚀 Projeção (próximo mês)
-
-Máximo 250 palavras. Seja direto e prático.`
-
-      const resultado = await chamarIA(prompt)
+      const prompt = buildPromptAnalise({ objetivo, dados })
+      const plano = profile.plano || 'free'
+      const resultado = await chamarIA(prompt, plano)
       setAnalise(resultado)
-    } catch (e) {
-      console.error('Erro IA analise:', e)
-      setErroAnalise(`Erro: ${e.message}. Verifique se o backend está rodando em ${API_URL}`)
-    } finally { setLoadingAnalise(false) }
+    } catch(e) {
+      console.error('Erro IA:', e)
+      setErroA(e.message)
+    } finally { setLoadingA(false) }
   }
 
-  async function gerarDicas() {
-    setLoadingDicas(true); setErroDicas(''); setDicas('')
-    const cc = profile.casal_code
-    const cf = q => cc ? q.eq('casal_code', cc) : q.eq('user_id', session.user.id)
+  async function gerarNotificacoes() {
+    if (!dados) return
+    setLoadingN(true); setErroN(''); setNotifs([])
     try {
-      const [inv, res] = await Promise.all([
-        cf(supabase.from('investimentos').select('*')),
-        supabase.from('reserva').select('*').eq('user_id', session.user.id).maybeSingle(),
-      ])
-      const totalInv = (inv.data || []).reduce((s, i) => s + i.valor, 0)
-      const reserva = res.data || { atual: 0, meta: 30000 }
-
-      const prompt = `Você é um especialista em renda fixa brasileira. Dê 3 dicas personalizadas em português:
-
-CARTEIRA ATUAL:
-- Total investido: ${fmt(totalInv)}
-- Reserva de emergência: ${fmt(reserva.atual)} de ${fmt(reserva.meta)}
-- CDI configurado: ${reserva.rende_cdi ? `${reserva.pct_cdi}% CDI` : 'não configurado'}
-- Objetivo: ${profile.objetivo || 'controle financeiro'}
-
-Formato: 3 dicas numeradas com emoji, práticas e específicas para o Brasil. Máximo 150 palavras.`
-
-      const resultado = await chamarIA(prompt)
-      setDicas(resultado)
-    } catch (e) {
-      console.error('Erro IA dicas:', e)
-      setErroDicas(`Erro: ${e.message}`)
-    } finally { setLoadingDicas(false) }
+      const prompt = buildPromptNotificacoes({ objetivo, dados })
+      const plano = profile.plano || 'free'
+      const raw = await chamarIA(prompt, plano)
+      const clean = raw.replace(/```json|```/g, '').trim()
+      const parsed = JSON.parse(clean)
+      setNotifs(Array.isArray(parsed) ? parsed : [])
+    } catch(e) {
+      console.error('Erro notifs:', e)
+      setErroN('Não foi possível gerar as notificações. ' + e.message)
+    } finally { setLoadingN(false) }
   }
+
+  // Formata a análise em blocos visuais
+  function renderAnalise(texto) {
+    if (!texto) return null
+    const blocos = texto.split(/\n(?=📊|⚠️|💡|🚀)/).filter(Boolean)
+    if (blocos.length <= 1) {
+      return <div style={{ fontSize:14, lineHeight:1.8, whiteSpace:'pre-wrap', color:'var(--primary)' }}>{texto}</div>
+    }
+    const cores = { '📊':'var(--blue-bg)', '⚠️':'var(--yellow-bg)', '💡':'var(--green-bg)', '🚀':'var(--red-bg)' }
+    const textCores = { '📊':'var(--blue)', '⚠️':'var(--yellow)', '💡':'var(--green)', '🚀':'var(--red)' }
+    return (
+      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+        {blocos.map((bloco, i) => {
+          const emoji = bloco.trim()[0]
+          const lines = bloco.trim().split('\n')
+          const titulo = lines[0].replace(emoji, '').trim()
+          const corpo = lines.slice(1).join('\n').trim()
+          return (
+            <div key={i} style={{ background: cores[emoji]||'var(--bg)', borderRadius:12, padding:'14px 16px', borderLeft:`3px solid ${textCores[emoji]||'var(--border)'}` }}>
+              <div style={{ fontWeight:600, fontSize:13, color:textCores[emoji]||'var(--primary)', marginBottom:corpo?6:0, display:'flex', alignItems:'center', gap:6 }}>
+                <span>{emoji}</span><span>{titulo}</span>
+              </div>
+              {corpo && <div style={{ fontSize:13, lineHeight:1.7, color:'var(--primary)', whiteSpace:'pre-wrap' }}>{corpo}</div>}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  if (loadingDados) return <div className="empty">Carregando dados financeiros...</div>
 
   return (
     <div>
-      <div className="grid-2" style={{ marginBottom: 20 }}>
+      {/* Objetivo atual */}
+      <div className="card" style={{ marginBottom:16, background:`linear-gradient(135deg, var(--primary) 0%, #2D2D35 100%)`, color:'#fff', border:'none' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ fontSize:32 }}>{obj.icon}</div>
+            <div>
+              <div style={{ fontSize:11, opacity:0.6, textTransform:'uppercase', letterSpacing:0.8, marginBottom:4 }}>Objetivo do casal</div>
+              <div style={{ fontSize:18, fontWeight:600 }}>{obj.label}</div>
+              <div style={{ fontSize:12, opacity:0.7, marginTop:4 }}>Foco: {obj.foco}</div>
+            </div>
+          </div>
+          <a href="#" onClick={e=>{e.preventDefault();window.dispatchEvent(new CustomEvent('nav', {detail:'configuracoes'}))}}
+            style={{ fontSize:12, color:'rgba(255,255,255,0.5)', textDecoration:'underline' }}>
+            Alterar objetivo →
+          </a>
+        </div>
+        {/* Alertas do objetivo */}
+        <div style={{ marginTop:14, display:'flex', gap:8, flexWrap:'wrap' }}>
+          {obj.alertas.map(a => (
+            <span key={a} style={{ fontSize:11, background:'rgba(255,255,255,0.1)', borderRadius:20, padding:'3px 10px', color:'rgba(255,255,255,0.7)' }}>
+              {a}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Resumo do mês */}
+      {dados && (
+        <div className="grid-4" style={{ marginBottom:16 }}>
+          <div className="mini-card">
+            <div className="lbl">Saldo do mês</div>
+            <div className="val" style={{ color: dados.saldo>=0?'var(--green)':'var(--red)' }}>{fmt(dados.saldo)}</div>
+            <div className="sub">rec: {fmt(dados.totalRec)}</div>
+          </div>
+          <div className="mini-card">
+            <div className="lbl">Taxa poupança</div>
+            <div className="val" style={{ color: dados.totalRec>0 && ((dados.totalRec-dados.totalDesp)/dados.totalRec)>=0.2 ? 'var(--green)' : 'var(--yellow)' }}>
+              {dados.totalRec > 0 ? (((dados.totalRec-dados.totalDesp)/dados.totalRec)*100).toFixed(0) : 0}%
+            </div>
+            <div className="sub">meta: ≥ 20%</div>
+          </div>
+          <div className="mini-card">
+            <div className="lbl">Reserva</div>
+            <div className="val" style={{ color: dados.reserva.pct >= 100 ? 'var(--green)' : dados.reserva.pct >= 50 ? 'var(--yellow)' : 'var(--red)' }}>
+              {dados.reserva.pct?.toFixed(0) || 0}%
+            </div>
+            <div className="sub">{fmt(dados.reserva.atual)} / {fmt(dados.reserva.meta)}</div>
+          </div>
+          <div className="mini-card">
+            <div className="lbl">Investido</div>
+            <div className="val" style={{ color:'var(--blue)' }}>{fmt(dados.investimentos)}</div>
+            <div className="sub">{dados.metas} meta(s) ativa(s)</div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid-2">
         {/* Análise mensal */}
         <div>
-          <div className="card" style={{ marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>📊 Análise do mês</div>
-            <div style={{ fontSize: 13, color: 'var(--secondary)', marginBottom: 14, lineHeight: 1.5 }}>
-              Diagnóstico completo com gastos, receitas, reserva e projeção baseado nos seus dados reais.
+          <div className="card" style={{ marginBottom:12 }}>
+            <div style={{ fontWeight:600, fontSize:15, marginBottom:6 }}>📊 Análise do mês</div>
+            <div style={{ fontSize:13, color:'var(--secondary)', marginBottom:14, lineHeight:1.5 }}>
+              Diagnóstico personalizado para o objetivo <strong>{obj.label}</strong> com base nos seus dados reais.
             </div>
             <button className="btn btn-primary" onClick={gerarAnalise}
-              disabled={loadingAnalise} style={{ width: '100%', justifyContent: 'center' }}>
-              {loadingAnalise ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
-                  Analisando...
-                </span>
-              ) : '✨ Gerar análise'}
+              disabled={loadingAnalise} style={{ width:'100%', justifyContent:'center' }}>
+              {loadingAnalise ? '⏳ Analisando com Claude...' : `${obj.icon} Gerar análise`}
             </button>
           </div>
-
           {erroAnalise && (
-            <div style={{ background: '#FCEBEB', border: '0.5px solid var(--red)', borderRadius: 10, padding: 12, marginBottom: 12, fontSize: 13, color: 'var(--red)' }}>
-              {erroAnalise}
+            <div style={{ background:'var(--red-bg)', border:'0.5px solid var(--red)', borderRadius:10, padding:12, marginBottom:12, fontSize:13, color:'var(--red)' }}>
+              ❌ {erroAnalise}
+              <div style={{ fontSize:11, marginTop:6, opacity:0.7 }}>Verifique se a ANTHROPIC_API_KEY está configurada na Vercel.</div>
             </div>
           )}
-
           {analise && (
-            <div className="card" style={{ background: '#F9F8F6' }}>
-              <div style={{ fontSize: 14, lineHeight: 1.8, whiteSpace: 'pre-wrap', color: 'var(--primary)' }}>
-                {analise}
-              </div>
+            <div className="card">
+              {renderAnalise(analise)}
             </div>
           )}
         </div>
 
-        {/* Dicas renda fixa */}
+        {/* Notificações por objetivo */}
         <div>
-          <div className="card" style={{ marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>🏦 Dicas de Renda Fixa</div>
-            <div style={{ fontSize: 13, color: 'var(--secondary)', marginBottom: 14, lineHeight: 1.5 }}>
-              Sugestões personalizadas para sua carteira de investimentos baseadas no perfil do casal.
+          <div className="card" style={{ marginBottom:12 }}>
+            <div style={{ fontWeight:600, fontSize:15, marginBottom:6 }}>🔔 Alertas personalizados</div>
+            <div style={{ fontSize:13, color:'var(--secondary)', marginBottom:14, lineHeight:1.5 }}>
+              3 alertas e dicas específicos para avançar no objetivo <strong>{obj.label}</strong>.
             </div>
-            <button className="btn btn-green" onClick={gerarDicas}
-              disabled={loadingDicas} style={{ width: '100%', justifyContent: 'center' }}>
-              {loadingDicas ? '⏳ Gerando...' : '💡 Gerar dicas'}
+            <button className="btn btn-outline" onClick={gerarNotificacoes}
+              disabled={loadingNotifs} style={{ width:'100%', justifyContent:'center' }}>
+              {loadingNotifs ? '⏳ Gerando alertas...' : '🔔 Gerar alertas'}
             </button>
           </div>
-
-          {erroDicas && (
-            <div style={{ background: '#FCEBEB', border: '0.5px solid var(--red)', borderRadius: 10, padding: 12, marginBottom: 12, fontSize: 13, color: 'var(--red)' }}>
-              {erroDicas}
+          {erroNotifs && (
+            <div style={{ background:'var(--red-bg)', borderRadius:10, padding:12, marginBottom:12, fontSize:13, color:'var(--red)' }}>
+              ❌ {erroNotifs}
             </div>
           )}
-
-          {dicas && (
-            <div className="card" style={{ background: '#F9F8F6' }}>
-              <div style={{ fontSize: 14, lineHeight: 1.8, whiteSpace: 'pre-wrap', color: 'var(--primary)' }}>
-                {dicas}
+          {notifs.length > 0 && (
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {notifs.map((n, i) => {
+                const c = TIPO_CORES[n.tipo] || TIPO_CORES.dica
+                return (
+                  <div key={i} className="card" style={{ borderLeft:`3px solid ${c.color}`, background:c.bg }}>
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                      <span style={{ fontSize:20, flexShrink:0 }}>{c.icon}</span>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontWeight:600, fontSize:13, color:c.color, marginBottom:4 }}>{n.titulo}</div>
+                        <div style={{ fontSize:13, color:'var(--primary)', lineHeight:1.5 }}>{n.mensagem}</div>
+                      </div>
+                      <span className={`badge ${n.prioridade==='alta'?'badge-red':n.prioridade==='media'?'badge-yellow':'badge-green'}`}>
+                        {n.prioridade}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+              {/* Salvar notificações no banco */}
+              <button className="btn btn-outline btn-sm" style={{ alignSelf:'flex-end' }}
+                onClick={async () => {
+                  for (const n of notifs) {
+                    await supabase.from('notificacoes').insert({
+                      user_id: session.user.id,
+                      casal_code: profile.casal_code,
+                      tipo: n.tipo, titulo: n.titulo,
+                      mensagem: n.mensagem, lida: false,
+                    })
+                  }
+                  alert('✅ Alertas salvos em Notificações!')
+                }}>
+                💾 Salvar nos alertas
+              </button>
+            </div>
+          )}
+          {!analise && !notifs.length && !erroAnalise && !erroNotifs && (
+            <div className="card" style={{ textAlign:'center', padding:40 }}>
+              <div style={{ fontSize:40, marginBottom:12 }}>🤖</div>
+              <div style={{ fontWeight:500, marginBottom:8 }}>Claude AI</div>
+              <div style={{ color:'var(--secondary)', fontSize:13, lineHeight:1.6 }}>
+                Análises personalizadas para o objetivo<br/><strong>{obj.label}</strong>
+              </div>
+              <div style={{ marginTop:12, fontSize:11, color:'var(--secondary)' }}>
+                Powered by Claude Sonnet
               </div>
             </div>
           )}
         </div>
       </div>
-
-      {/* Info sobre a IA */}
-      {!analise && !dicas && !erroAnalise && !erroDicas && (
-        <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🤖</div>
-          <div style={{ fontWeight: 500, marginBottom: 8, fontSize: 16 }}>Análise com IA</div>
-          <div style={{ color: 'var(--secondary)', fontSize: 13, lineHeight: 1.6, maxWidth: 400, margin: '0 auto' }}>
-            Powered by <strong>Groq (llama-3.3-70b)</strong> — análises personalizadas baseadas nos seus dados financeiros reais.
-          </div>
-          <div style={{ marginTop: 16, fontSize: 12, color: 'var(--secondary)' }}>
-            Backend: <code style={{ background: '#F5F3EF', padding: '2px 6px', borderRadius: 4 }}>{API_URL}</code>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
