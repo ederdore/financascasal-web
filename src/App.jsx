@@ -16,22 +16,102 @@ import IA from './pages/IA.jsx'
 import Configuracoes from './pages/Configuracoes.jsx'
 import Admin from './pages/Admin.jsx'
 
+// SVG icons como strings para usar inline
+const ICONS = {
+  visao: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <rect x="3" y="3" width="6" height="6" rx="1.5"/>
+    <rect x="11" y="3" width="6" height="6" rx="1.5"/>
+    <rect x="3" y="11" width="6" height="6" rx="1.5"/>
+    <rect x="11" y="11" width="6" height="6" rx="1.5"/>
+  </svg>`,
+  bancos: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <path d="M2 8l8-5 8 5"/>
+    <rect x="4" y="8" width="2.5" height="6"/>
+    <rect x="8.75" y="8" width="2.5" height="6"/>
+    <rect x="13.5" y="8" width="2.5" height="6"/>
+    <line x1="2" y1="17" x2="18" y2="17"/>
+  </svg>`,
+  receitas: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="10" cy="10" r="7.5"/>
+    <path d="M10 7v6M7.5 9.5L10 7l2.5 2.5"/>
+  </svg>`,
+  despesas: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="10" cy="10" r="7.5"/>
+    <path d="M10 7v6M7.5 10.5L10 13l2.5-2.5"/>
+  </svg>`,
+  cartoes: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <rect x="2" y="5" width="16" height="11" rx="2"/>
+    <line x1="2" y1="9" x2="18" y2="9"/>
+    <line x1="5" y1="13" x2="8" y2="13"/>
+  </svg>`,
+  contas: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <path d="M4 5h12M4 9h8M4 13h10M4 17h6"/>
+  </svg>`,
+  streaming: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <rect x="2" y="4" width="16" height="11" rx="2"/>
+    <path d="M8 15l2 2 2-2"/>
+    <path d="M8 8.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/>
+  </svg>`,
+  rendafixa: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <polyline points="2,14 6,9 10,11 14,6 18,4"/>
+    <circle cx="18" cy="4" r="1.5" fill="currentColor" stroke="none"/>
+  </svg>`,
+  reserva: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <path d="M10 2.5L3 6v5c0 4 3.5 6.5 7 7.5 3.5-1 7-3.5 7-7.5V6z"/>
+    <polyline points="7,10 9,12 13,8"/>
+  </svg>`,
+  metas: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="10" cy="10" r="7.5"/>
+    <circle cx="10" cy="10" r="4"/>
+    <circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/>
+  </svg>`,
+  notificacoes: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <path d="M10 2.5a5.5 5.5 0 015.5 5.5c0 3 1 4.5 1.5 5H3c.5-.5 1.5-2 1.5-5A5.5 5.5 0 0110 2.5z"/>
+    <path d="M8 15.5a2 2 0 004 0"/>
+  </svg>`,
+  ia: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <rect x="3" y="5" width="14" height="10" rx="3"/>
+    <circle cx="7" cy="10" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="10" cy="10" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="13" cy="10" r="1.2" fill="currentColor" stroke="none"/>
+  </svg>`,
+  configuracoes: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="10" cy="10" r="2.5"/>
+    <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.4 4.4l1.4 1.4M14.2 14.2l1.4 1.4M4.4 15.6l1.4-1.4M14.2 5.8l1.4-1.4"/>
+  </svg>`,
+  admin: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <path d="M3 5h14M3 10h14M3 15h8"/>
+    <circle cx="16" cy="15" r="2.5"/>
+    <line x1="18" y1="17" x2="19.5" y2="18.5"/>
+  </svg>`,
+}
+
 const TABS = [
-  { id: 'visao',         icon: '◉',  label: 'Visão Geral' },
-  { id: 'bancos',        icon: '🏦', label: 'Bancos' },
-  { id: 'receitas',      icon: '💰', label: 'Receitas' },
-  { id: 'despesas',      icon: '💸', label: 'Despesas' },
-  { id: 'cartoes',       icon: '💳', label: 'Cartões' },
-  { id: 'contas',        icon: '📋', label: 'Contas' },
-  { id: 'streaming',     icon: '📺', label: 'Streaming' },
-  { id: 'rendafixa',     icon: '📈', label: 'Renda Fixa' },
-  { id: 'reserva',       icon: '🛡', label: 'Reserva' },
-  { id: 'metas',         icon: '🎯', label: 'Metas' },
-  { id: 'notificacoes',  icon: '🔔', label: 'Notificações' },
-  { id: 'ia',            icon: '🤖', label: 'IA' },
-  { id: 'configuracoes', icon: '⚙️',  label: 'Configurações' },
-  { id: 'admin',         icon: '🛠️', label: 'Admin' },
+  { id: 'visao',         icon: 'visao',         label: 'Visão Geral' },
+  { id: 'bancos',        icon: 'bancos',        label: 'Bancos' },
+  { id: 'receitas',      icon: 'receitas',      label: 'Receitas' },
+  { id: 'despesas',      icon: 'despesas',      label: 'Despesas' },
+  { id: 'cartoes',       icon: 'cartoes',       label: 'Cartões' },
+  { id: 'contas',        icon: 'contas',        label: 'Contas' },
+  { id: 'streaming',     icon: 'streaming',     label: 'Streaming' },
+  { id: 'rendafixa',     icon: 'rendafixa',     label: 'Renda Fixa' },
+  { id: 'reserva',       icon: 'reserva',       label: 'Reserva' },
+  { id: 'metas',         icon: 'metas',         label: 'Metas' },
+  { id: 'notificacoes',  icon: 'notificacoes',  label: 'Notificações' },
+  { id: 'ia',            icon: 'ia',            label: 'IA' },
+  { id: 'configuracoes', icon: 'configuracoes', label: 'Configurações' },
+  { id: 'admin',         icon: 'admin',         label: 'Admin' },
 ]
+
+function NavIcon({ id, active }) {
+  return (
+    <div
+      className="icon"
+      style={{ filter: active ? 'invert(1)' : 'none' }}
+      dangerouslySetInnerHTML={{ __html: ICONS[id] || '' }}
+    />
+  )
+}
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -101,31 +181,52 @@ export default function App() {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h1>💑 FinançasCasal</h1>
-          <p>Finanças do casal</p>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:30, height:30, borderRadius:9, background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 }}>💑</div>
+            <div>
+              <h1>FinançasCasal</h1>
+              <p>Finanças do casal</p>
+            </div>
+          </div>
         </div>
         <nav className="sidebar-nav">
-          {TABS.map(t => (
+          <div className="nav-section-label">Finanças</div>
+          {TABS.slice(0, 6).map(t => (
             <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-              <span className="icon">{t.icon}</span>
+              <NavIcon id={t.id} active={tab === t.id} />
+              <span>{t.label}</span>
+            </div>
+          ))}
+          <div className="nav-section-label">Investimentos</div>
+          {TABS.slice(6, 10).map(t => (
+            <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+              <NavIcon id={t.id} active={tab === t.id} />
+              <span>{t.label}</span>
+            </div>
+          ))}
+          <div className="nav-section-label">Conta</div>
+          {TABS.slice(10).map(t => (
+            <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+              <NavIcon id={t.id} active={tab === t.id} />
               <span>{t.label}</span>
             </div>
           ))}
         </nav>
         <div className="sidebar-footer">
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ width:28, height:28, borderRadius:14, background:papelBg,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontSize:10, fontWeight:700, color:papelTxt }}>
-                {profile.papel === 'eu' ? 'EU' : 'ELA'}
-              </div>
-              <div>
-                <div style={{ fontWeight:500, color:'var(--primary)', fontSize:12 }}>{profile.nome}</div>
-                <div style={{ fontSize:10 }}>{profile.casal_code}</div>
-              </div>
+          <div className="sidebar-profile">
+            <div className="sidebar-avatar" style={{ background: papelBg, color: papelTxt }}>
+              {profile.nome?.charAt(0)?.toUpperCase() || '?'}
             </div>
-            <button className="btn btn-outline btn-sm" onClick={logout}>Sair</button>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div className="sidebar-user-name">{profile.nome}</div>
+              <div className="sidebar-user-role">{profile.papel?.toUpperCase()} · {profile.casal_code}</div>
+            </div>
+            <button onClick={logout} title="Sair"
+              style={{ background:'none', border:'none', color:'var(--secondary)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', flexShrink:0 }}>
+              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M13 3h4v14h-4M9 13l4-3-4-3M2 10h11"/>
+              </svg>
+            </button>
           </div>
         </div>
       </aside>
@@ -133,10 +234,15 @@ export default function App() {
       {/* Main */}
       <main className="main">
         <div className="topbar">
-          <h2>{TABS.find(t => t.id === tab)?.icon} {TABS.find(t => t.id === tab)?.label}</h2>
+          <div className="topbar-left">
+            <div className="topbar-page-icon">
+              <div style={{ width:18, height:18 }} dangerouslySetInnerHTML={{ __html: ICONS[tab] || '' }} />
+            </div>
+            <h2>{TABS.find(t => t.id === tab)?.label}</h2>
+          </div>
           <div className="topbar-right">
             <span style={{ fontSize:12, color:'var(--secondary)' }}>
-              Código: <strong>{profile.casal_code}</strong>
+              <span style={{ background:'var(--bg)', padding:'4px 10px', borderRadius:8, fontFamily:'monospace', letterSpacing:1 }}>{profile.casal_code}</span>
             </span>
           </div>
         </div>
