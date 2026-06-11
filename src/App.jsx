@@ -17,6 +17,7 @@ import Configuracoes from './pages/Configuracoes.jsx'
 import Admin from './pages/Admin.jsx'
 import { useAutoLancarRecorrencias } from './components/AutoLancarRecorrencias.jsx'
 import { useConquistas, CelebracaoModal } from './components/Conquistas.jsx'
+import { useFaseAtual, FaseBadge } from './components/FasesFinanceiras.jsx'
 
 // SVG icons como strings para usar inline
 const ICONS = {
@@ -115,8 +116,14 @@ function NavIcon({ id, active }) {
   )
 }
 
+// Badge de fase na sidebar
+function SidebarFaseBadge({ session, profile }) {
+  const { fase } = useFaseAtual(session, profile)
+  return <FaseBadge fase={fase} />
+}
+
 // Componente invisível — auto-lançamento + conquistas
-function AutoLancarRunner({ session, profile }) {
+function AutoLancarRunner({ session, profile, onFase }) {
   useAutoLancarRecorrencias(session, profile)
   const { novasConquistas, dispensar } = useConquistas(session, profile)
   return <CelebracaoModal conquistas={novasConquistas} onClose={dispensar} />
@@ -227,7 +234,10 @@ export default function App() {
               {profile.nome?.charAt(0)?.toUpperCase() || '?'}
             </div>
             <div style={{ flex:1, minWidth:0 }}>
-              <div className="sidebar-user-name">{profile.nome}</div>
+              <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+                <span className="sidebar-user-name">{profile.nome}</span>
+                <SidebarFaseBadge session={session} profile={profile} />
+              </div>
               <div className="sidebar-user-role">{profile.papel?.toUpperCase()} · {profile.casal_code}</div>
             </div>
             <button onClick={logout} title="Sair"

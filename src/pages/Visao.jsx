@@ -9,6 +9,7 @@ export default function Visao({ session, profile }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { loadData() }, [])
+  const { fase, progressoProxima } = useFaseAtual(session, profile)
 
   async function loadData() {
     const uid = session.user.id
@@ -228,8 +229,14 @@ export default function Visao({ session, profile }) {
           </div>
         )}
       </div>
-      {/* Pergunta mensal + conquistas */}
+      {/* Medidor 50/30/20 + Fases */}
       <div className="grid-2" style={{ marginTop: 16 }}>
+        <Medidor502030 despesas={despesas} receitas={receitas} />
+        <CardFases fase={fase} progressoProxima={progressoProxima} />
+      </div>
+
+      {/* Pergunta mensal + conquistas */}
+      <div className="grid-2" style={{ marginTop: 12 }}>
         <PerguntaMensal session={session} profile={profile} />
         <ConquistasRecentes session={session} profile={profile} />
       </div>
