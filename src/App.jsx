@@ -16,6 +16,7 @@ import IA from './pages/IA.jsx'
 import Configuracoes from './pages/Configuracoes.jsx'
 import Admin from './pages/Admin.jsx'
 import { useAutoLancarRecorrencias } from './components/AutoLancarRecorrencias.jsx'
+import { useConquistas, CelebracaoModal } from './components/Conquistas.jsx'
 
 // SVG icons como strings para usar inline
 const ICONS = {
@@ -114,10 +115,11 @@ function NavIcon({ id, active }) {
   )
 }
 
-// Componente invisível que dispara o auto-lançamento
+// Componente invisível — auto-lançamento + conquistas
 function AutoLancarRunner({ session, profile }) {
   useAutoLancarRecorrencias(session, profile)
-  return null
+  const { novasConquistas, dispensar } = useConquistas(session, profile)
+  return <CelebracaoModal conquistas={novasConquistas} onClose={dispensar} />
 }
 
 export default function App() {

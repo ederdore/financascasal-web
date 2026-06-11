@@ -228,6 +228,11 @@ export default function Visao({ session, profile }) {
           </div>
         )}
       </div>
+      {/* Pergunta mensal + conquistas */}
+      <div className="grid-2" style={{ marginTop: 16 }}>
+        <PerguntaMensal session={session} profile={profile} />
+        <ConquistasRecentes session={session} profile={profile} />
+      </div>
     </div>
   )
 }
