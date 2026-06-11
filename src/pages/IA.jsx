@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase, fmt } from '../supabase.js'
 import { OBJETIVOS, buildPromptAnalise, buildPromptNotificacoes, chamarIA, buscarMemoriaPerguntas, formatarMemoria } from '../components/IAEngine.js'
 import { useComparativoFase, ComparativoFase } from '../components/ComparativoFases.jsx'
+import { carregarMemoria, atualizarMemoria, formatarMemoriaIA, gerarAlertaProativo } from '../components/IAMemoria.js'
 import { useFaseAtual } from '../components/FasesFinanceiras.jsx'
 
 const TIPO_CORES = {
@@ -19,6 +20,9 @@ export default function IA({ session, profile }) {
   const [erroNotifs, setErroN]          = useState('')
   const [dados, setDados]               = useState(null)
   const [loadingDados, setLoadingDados] = useState(true)
+  const [memoriaIA, setMemoriaIA] = useState(null)
+  const [alertaProativo, setAlertaProativo] = useState('')
+  const isPremium = (profile.plano || 'free') === 'premium'
 
   const objetivo = profile.objetivo || 'controle'
   const obj      = OBJETIVOS[objetivo]
@@ -26,6 +30,22 @@ export default function IA({ session, profile }) {
   const comparativo = useComparativoFase(profile, fase)
 
   useEffect(() => { carregarDados() }, [])
+  useEffect(() => {
+    if (!profile?.casal_code) return
+    carregarMemoria(profile.casal_code).then(m => {
+      if (m) setMemoriaIA(m)
+    })
+  }, [profile?.casal_code])
+
+  // Alerta proativo para premium — gera automaticamente
+  useEffect(() => {
+    if (!isPremium || !dados || !memoriaIA) return
+    gerarAlertaProativo({
+      casalCode: profile.casal_code,
+      dados, memoria: memoriaIA,
+      objetivo: profile.objetivo || 'controle',
+    }).then(alerta => { if (alerta) setAlertaProativo(alerta) })
+  }, [isPremium, dados, memoriaIA])
 
   async function carregarDados() {
     setLoadingDados(true)
@@ -68,11 +88,25 @@ export default function IA({ session, profile }) {
     try {
       // Carrega memória das perguntas mensais para contexto
       const perguntas = await buscarMemoriaPerguntas(supabase, profile.casal_code, 6)
-      const memoria = formatarMemoria(perguntas)
+      const memoriaPerguntas = formatarMemoria(perguntas)
+      const memoriaAprendida = formatarMemoriaIA(memoriaIA)
+      const memoria = memoriaPerguntas + memoriaAprendida
       const prompt = buildPromptAnalise({ objetivo, dados, memoria })
       const plano = profile.plano || 'free'
       const resultado = await chamarIA(prompt, plano)
       setAnalise(resultado)
+
+      // Atualiza memória para usuários premium
+      if (isPremium && resultado) {
+        atualizarMemoria({
+          casalCode: profile.casal_code,
+          analise: resultado,
+          dados, perguntas, plano: 'premium',
+        }).then(resumo => {
+          if (resumo) setMemoriaIA(prev => ({ ...prev, resumo, total_analises: (prev?.total_analises||0)+1 }))
+        })
+      }
+
     } catch(e) {
       console.error('Erro IA:', e)
       setErroA(e.message)
@@ -190,11 +224,11 @@ export default function IA({ session, profile }) {
           <div className="card" style={{ marginBottom:12 }}>
             <div style={{ fontWeight:600, fontSize:15, marginBottom:6 }}>📊 Análise do mês</div>
             <div style={{ fontSize:13, color:'var(--secondary)', marginBottom:14, lineHeight:1.5 }}>
-              Diagnóstico personalizado para o objetivo <strong>{obj.label}</strong> com base nos seus dados reais.
+              {isPremium ? `Análise profunda com memória de ${memoriaIA?.total_analises||0} mês(es). A IA aprende e evolui com vocês.` : `Diagnóstico personalizado para o objetivo `}<strong>{!isPremium && obj.label}</strong>{!isPremium && ` com base nos seus dados reais.`}
             </div>
             <button className="btn btn-primary" onClick={gerarAnalise}
               disabled={loadingAnalise} style={{ width:'100%', justifyContent:'center' }}>
-              {loadingAnalise ? '⏳ Analisando com Claude...' : `${obj.icon} Gerar análise`}
+              {loadingAnalise ? '⏳ Analisando com Claude...' : isPremium ? `🧠 Analisar e aprender` : `${obj.icon} Gerar análise`}
             </button>
           </div>
           {erroAnalise && (

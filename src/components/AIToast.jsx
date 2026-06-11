@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { buildPromptToast, chamarIA } from './IAEngine.js'
+import { carregarMemoria, formatarMemoriaIA } from './IAMemoria.js'
 
 export function useAIToast(profile) {
   const [toast, setToast] = useState(null)
@@ -10,12 +11,20 @@ export function useAIToast(profile) {
     setToast({ loading: true, msg: '' })
     try {
       const objetivo = profile?.objetivo || 'controle'
+      const plano    = profile?.plano || 'free'
+
+      // Premium: inclui memória aprendida no contexto do toast
+      let memoriaCtx = ''
+      if (plano === 'premium' && profile?.casal_code) {
+        const mem = await carregarMemoria(profile.casal_code)
+        memoriaCtx = formatarMemoriaIA(mem)
+      }
+
       const prompt = buildPromptToast({
         objetivo, tipo, nome, valor, categoria, quem,
         totalMes: contexto.totalMes,
         pctReserva: profile?.pct_reserva || 5,
-      })
-      const plano = profile?.plano || 'free'
+      }) + memoriaCtx
       const msg = await chamarIA(prompt, plano)
       if (msg?.trim()) setToast({ loading: false, msg: msg.trim() })
       else setToast(null)
