@@ -15,6 +15,7 @@ import Notificacoes from './pages/Notificacoes.jsx'
 import IA from './pages/IA.jsx'
 import Configuracoes from './pages/Configuracoes.jsx'
 import Admin from './pages/Admin.jsx'
+import { useAutoLancarRecorrencias } from './components/AutoLancarRecorrencias.jsx'
 
 // SVG icons como strings para usar inline
 const ICONS = {
@@ -111,6 +112,12 @@ function NavIcon({ id, active }) {
       dangerouslySetInnerHTML={{ __html: ICONS[id] || '' }}
     />
   )
+}
+
+// Componente invisível que dispara o auto-lançamento
+function AutoLancarRunner({ session, profile }) {
+  useAutoLancarRecorrencias(session, profile)
+  return null
 }
 
 export default function App() {
@@ -247,6 +254,7 @@ export default function App() {
           </div>
         </div>
         <div className="page">
+          <AutoLancarRunner session={session} profile={profile} />
           <PageComponent session={session} profile={profile} onProfileUpdate={() => loadProfile(session.user.id)} />
         </div>
       </main>

@@ -17,6 +17,7 @@ export default function Streaming({ session, profile }) {
   const [quem, setQuem] = useState(profile.papel)
   const [ativa, setAtiva] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [autoLancados, setAutoLancados] = useState(new Set())
   const now = new Date()
 
   useEffect(() => { loadData() }, [])
@@ -24,11 +25,12 @@ export default function Streaming({ session, profile }) {
   async function loadData() {
     const cc = profile.casal_code
     const cf = q => cc ? q.eq('casal_code', cc) : q.eq('user_id', session.user.id)
-    const [r, c, d] = await Promise.all([
+    const [r, c, d, lr] = await Promise.all([
       cf(supabase.from('recorrencias_cartao').select('*')).order('nome'),
       cf(supabase.from('cartoes').select('*')),
-      // Despesas deste mês para saber quais já foram lançadas
       cf(supabase.from('despesas').select('nome,cartao_id,valor'))
+        .eq('mes', now.getMonth()).eq('ano', now.getFullYear()),
+      cf(supabase.from('lancamentos_recorrentes').select('recorrencia_id'))
         .eq('mes', now.getMonth()).eq('ano', now.getFullYear()),
     ])
     if (r.data) setRecorrencias(r.data)
@@ -40,16 +42,31 @@ export default function Streaming({ session, profile }) {
       }
     }
     if (d.data) setHistorico(d.data)
+    // lancamentos_recorrentes tem precedência sobre verificação manual
+    if (lr.data) {
+      const autoSet = new Set(lr.data.map(l => l.recorrencia_id))
+      setAutoLancados(autoSet)
+    }
     setLoading(false)
   }
 
-  // Verifica se uma recorrência já foi lançada este mês
+  // Verifica se uma recorrência já foi lançada este mês (automático ou manual)
   function jaLancada(rec) {
+    if (autoLancados.has(rec.id)) return true
     return historico.some(d =>
       d.cartao_id === rec.cartao_id &&
       d.nome === rec.nome &&
       Math.abs(d.valor - rec.valor) < 0.01
     )
+  }
+
+  // Alterna auto_lancar de uma recorrência
+  async function toggleAutoLancar(rec) {
+    const novo = !rec.auto_lancar
+    await supabase.from('recorrencias_cartao')
+      .update({ auto_lancar: novo })
+      .eq('id', rec.id)
+    loadData()
   }
 
   // Verifica se hoje é o dia de lançar (dentro de 3 dias de tolerância)
@@ -65,7 +82,8 @@ export default function Streaming({ session, profile }) {
     setCartaoNome(r?.cartao_nome || cartoes[0]?.nome || '')
     setDia(r ? String(r.dia_cobranca) : '1')
     setCat(r?.categoria || 'Assinaturas')
-    setQuem(r?.quem || profile.papel); setAtiva(r?.ativa !== false); setModal(true)
+    setQuem(r?.quem || profile.papel); setAtiva(r?.ativa !== false)
+    setAutoLancar(r?.auto_lancar !== false); setModal(true)
   }
 
   async function salvar(e) {
@@ -74,7 +92,7 @@ export default function Streaming({ session, profile }) {
       user_id: session.user.id, casal_code: profile.casal_code || session.user.id,
       nome, valor: parseFloat(valor), cartao_id: cartaoId || null,
       cartao_nome: cartaoNome, dia_cobranca: parseInt(dia) || 1,
-      categoria: cat, quem, ativa,
+      categoria: cat, quem, ativa, auto_lancar: autoLancar,
     }
     try {
       let result
@@ -324,6 +342,14 @@ export default function Streaming({ session, profile }) {
                     <option value="eu">EU</option><option value="ela">ELA</option><option value="casal">Casal</option>
                   </select>
                 </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Lançamento</label>
+                <select className="form-select" value={autoLancar ? 'sim' : 'nao'} onChange={e => setAutoLancar(e.target.value === 'sim')}>
+                  <option value="sim">🤖 Automático — lança no dia configurado</option>
+                  <option value="nao">👆 Manual — precisa clicar para lançar</option>
+                </select>
+                <div style={{ fontSize:11, color:'var(--secondary)', marginTop:4 }}>Automático atualiza a fatura quando o dia de cobrança chega</div>
               </div>
               <div className="form-group">
                 <label className="form-label">Status</label>
