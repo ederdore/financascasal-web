@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, toBRL, MESES_CURTO, CAT_ICONS } from '../supabase.js'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
+import { PerguntaMensal } from '../components/PerguntaMensal.jsx'
+import { ConquistasRecentes } from '../components/Conquistas.jsx'
+import { Medidor502030 } from '../components/Regra502030.jsx'
+import { CardFases, useFaseAtual } from '../components/FasesFinanceiras.jsx'
 
 const COLORS = ['#1D9E75','#178DD1','#EF9F27','#E24B4A','#7F77DD','#2E7D32','#993556']
 
