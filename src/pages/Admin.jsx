@@ -65,9 +65,9 @@ export default function Admin({ session }) {
       setCustos(custosData.data || [])
 
       // Consolida receita mensal dos dados reais de assinaturas
-      const now = new Date()
-      const mesAtual = now.getMonth()
-      const anoAtual = now.getFullYear()
+      const nowDate = new Date()
+      const mesAtual = nowDate.getMonth()
+      const anoAtual = nowDate.getFullYear()
       const premiumAtivos = ass.filter(a => a.plano === 'premium' && a.status === 'ativo').length
       const receitaAtualBrl = premiumAtivos * 24
 
