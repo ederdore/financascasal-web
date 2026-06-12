@@ -197,10 +197,10 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:30, height:30, borderRadius:9, background:'var(--primary)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 }}>💑</div>
+            <div style={{ width:30, height:30, borderRadius:9, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>🌿</div>
             <div>
-              <h1>FinançasCasal</h1>
-              <p>Finanças do casal</p>
+              <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:20, fontWeight:600, letterSpacing:0.3, color:'var(--eden-cream)' }}>Éden</h1>
+              <p style={{ fontStyle:'italic', color:'rgba(232,220,200,0.55)', fontSize:10 }}>Finanças a dois, sem segredos.</p>
             </div>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function App() {
         </nav>
         <div className="sidebar-footer">
           <div className="sidebar-profile">
-            <div className="sidebar-avatar" style={{ background: papelBg, color: papelTxt }}>
+            <div className="sidebar-avatar">
               {profile.nome?.charAt(0)?.toUpperCase() || '?'}
             </div>
             <div style={{ flex:1, minWidth:0 }}>
@@ -259,9 +259,7 @@ export default function App() {
             <h2>{TABS.find(t => t.id === tab)?.label}</h2>
           </div>
           <div className="topbar-right">
-            <span style={{ fontSize:12, color:'var(--secondary)' }}>
-              <span style={{ background:'var(--bg)', padding:'4px 10px', borderRadius:8, fontFamily:'monospace', letterSpacing:1 }}>{profile.casal_code}</span>
-            </span>
+            <span style={{ fontSize:11, color:'var(--secondary)', background:'var(--eden-sand)', padding:'4px 10px', borderRadius:8, fontFamily:'monospace', letterSpacing:1 }}>{profile.casal_code}</span>
           </div>
         </div>
         <div className="page">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, MESES_CURTO } from '../supabase.js'
 
-const ADMIN_EMAILS = ['dore09@gmail.com']
+const ADMIN_EMAILS = ['seu@email.com']
 
 const PLANO_CORES = {
   free:    { bg: '#F1EFE8', color: '#444441', label: 'Free' },
@@ -157,6 +157,57 @@ export default function Admin({ session }) {
   async function cancelarConvite(id) {
     await supabase.from('convites').update({ status: 'cancelado' }).eq('id', id)
     loadData()
+  }
+
+  async function resetarConta(ass) {
+    const nome = ass.profiles?.nome || 'usuário'
+    const confirmacao = prompt(`Para resetar a conta de "${nome}", digite RESETAR:`)
+    if (confirmacao !== 'RESETAR') { showMsg('Cancelado — texto incorreto.', 'erro'); return }
+    setSaving(true)
+    try {
+      const uid  = ass.user_id
+      const cc   = ass.casal_code || ass.profiles?.casal_code
+
+      // Apaga todos os dados financeiros do casal
+      const tabelas = [
+        'aportes_metas', 'metas',
+        'aportes_reserva', 'reserva',
+        'parcelas', 'recorrencias_cartao', 'lancamentos_recorrentes',
+        'historico_faturas', 'cartoes',
+        'extrato_banco', 'contas_banco',
+        'pagamentos_contas', 'contas_fixas', 'contas_variaveis',
+        'investimentos', 'notificacoes',
+        'despesas', 'receitas', 'receitas_recorrentes',
+        'conquistas', 'perguntas_mensais', 'ia_memoria',
+      ]
+
+      for (const tabela of tabelas) {
+        if (cc) {
+          await supabase.from(tabela).delete().eq('casal_code', cc)
+        } else {
+          await supabase.from(tabela).delete().eq('user_id', uid)
+        }
+      }
+
+      // Reseta assinatura para free
+      await supabase.from('assinaturas').update({
+        plano: 'free', status: 'ativo',
+        trial_inicio: null, trial_fim: null,
+        pagamento_inicio: null, pagamento_fim: null,
+        valor_pago: 0, updated_at: new Date(),
+      }).eq('id', ass.id)
+
+      // Registra no audit log
+      await supabase.from('audit_logs').insert({
+        user_id: uid, acao: 'reset_conta_admin',
+        detalhes: JSON.stringify({ resetado_por: session.user.email, casal_code: cc }),
+        origem: 'admin',
+      })
+
+      showMsg(`✅ Conta de "${nome}" resetada com sucesso! Todos os dados financeiros foram apagados.`)
+      loadData()
+    } catch (e) { showMsg('Erro ao resetar: ' + e.message, 'erro') }
+    finally { setSaving(false) }
   }
 
   if (!isAdmin) return (
