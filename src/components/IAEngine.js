@@ -145,10 +145,7 @@ export function formatarMemoria(perguntas) {
   const linhas = perguntas.map(p =>
     `${MESES_CURTO[p.mes]}/${p.ano} — ${p.pergunta}: "${p.resposta}"`
   )
-  return `
-HISTÓRICO DE REFLEXÕES DO CASAL (últimos meses):
-${linhas.join('
-')}`
+  return '\n\nHISTÓRICO DE REFLEXÕES DO CASAL (últimos meses):\n' + linhas.join('\n')
 }
 
 // Chamada à API — passa o plano para o backend escolher o provider
