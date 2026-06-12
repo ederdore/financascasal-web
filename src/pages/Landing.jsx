@@ -486,11 +486,11 @@ export default function Landing({ onLogin }) {
             <div key={String(title)}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(232,220,200,0.3)', marginBottom:16 }}>{title}</div>
               <ul style={{ listStyle:'none' }}>
-                {(links as [string,string][]).map(([href,label]) => (
+                {links.map(([href, label]) => (
                   <li key={label} style={{ marginBottom:10 }}>
                     <a href={href} style={{ fontSize:13, color:'rgba(232,220,200,0.5)', transition:'color .15s' }}
-                      onMouseEnter={e=>(e.target as HTMLElement).style.color=S.sand}
-                      onMouseLeave={e=>(e.target as HTMLElement).style.color='rgba(232,220,200,0.5)'}>
+                      onMouseEnter={e=>e.target.style.color=S.sand}
+                      onMouseLeave={e=>e.target.style.color='rgba(232,220,200,0.5)'}>
                       {label}
                     </a>
                   </li>
