@@ -18,6 +18,8 @@ import Admin from './pages/Admin.jsx'
 import { useAutoLancarRecorrencias } from './components/AutoLancarRecorrencias.jsx'
 import { useConquistas, CelebracaoModal } from './components/Conquistas.jsx'
 import { useFaseAtual, FaseBadge } from './components/FasesFinanceiras.jsx'
+import Onboarding from './pages/Onboarding.jsx'
+import { TrialBanner } from './components/StripeUpgrade.jsx'
 
 // SVG icons como strings para usar inline
 const ICONS = {
@@ -165,6 +167,11 @@ export default function App() {
       </div>
     </div>
   )
+
+  // Onboarding para novos usuários
+  if (session && profile && !profile.onboarding_completo) {
+    return <Onboarding session={session} onComplete={() => loadProfile(session.user.id)} />
+  }
 
   // Usuário não logado — mostra landing com login integrado
   if (!session) return <Landing onLogin={() => {
