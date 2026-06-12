@@ -6,6 +6,8 @@ import { ConquistasRecentes } from '../components/Conquistas.jsx'
 import { Medidor502030 } from '../components/Regra502030.jsx'
 import { CardFases, useFaseAtual } from '../components/FasesFinanceiras.jsx'
 import { useComparativoFase, ComparativoFase } from '../components/ComparativoFases.jsx'
+import { ReflexaoCard } from '../components/ReflexaoCard.jsx'
+import { analisarPadroes } from '../components/PadroesGasto.js'
 
 const COLORS = ['#1D9E75','#178DD1','#EF9F27','#E24B4A','#7F77DD','#2E7D32','#993556']
 
@@ -13,7 +15,11 @@ export default function Visao({ session, profile }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadData() }, [])
+  useEffect(() => {
+    loadData()
+    // Analisa padrões em background
+    setTimeout(() => analisarPadroes(session, profile), 5000)
+  }, [])
   const { fase, progressoProxima } = useFaseAtual(session, profile)
   const comparativo = useComparativoFase(profile, fase)
 
@@ -235,6 +241,9 @@ export default function Visao({ session, profile }) {
           </div>
         )}
       </div>
+      {/* Reflexão comportamental do dia */}
+      <ReflexaoCard session={session} profile={profile} />
+
       {/* Medidor 50/30/20 + Fases */}
       <div className="grid-2" style={{ marginTop: 16 }}>
         <Medidor502030 despesas={despesas} receitas={receitas} />
