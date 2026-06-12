@@ -430,6 +430,11 @@ export default function Admin({ session }) {
                               <button className="btn btn-sm" style={{ background: '#FCEBEB', color: 'var(--red)' }}
                                 onClick={() => cancelarAssinatura(a.id)}>✕</button>
                             )}
+                            <button className="btn btn-sm" style={{ background: '#FFF3CD', color: '#7A4F00' }}
+                              title="Apagar todos os dados financeiros desta conta"
+                              onClick={() => resetarConta(a)}>
+                              🗑️ Reset
+                            </button>
                           </div>
                         </td>
                       </tr>
