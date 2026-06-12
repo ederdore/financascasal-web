@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, MESES_CURTO } from '../supabase.js'
 
-const ADMIN_EMAILS = ['dore09@gmail.com']
+const ADMIN_EMAILS = ['seu@email.com']
 
 const PLANO_CORES = {
   free:    { bg: '#F1EFE8', color: '#444441', label: 'Free' },
@@ -20,6 +20,16 @@ export default function Admin({ session }) {
   const [metricas, setMetricas] = useState(null)
   const [assinaturas, setAssinaturas] = useState([])
   const [convites, setConvites] = useState([])
+  const [custos, setCustos] = useState([])
+  const [receitaMensal, setReceitaMensal] = useState([])
+  const [modalCusto, setModalCusto] = useState(false)
+  const [editCusto, setEditCusto] = useState(null)
+  const [cNome, setCNome] = useState('')
+  const [cCategoria, setCCategoria] = useState('hosting')
+  const [cValorUsd, setCValorUsd] = useState('')
+  const [cValorBrl, setCValorBrl] = useState('')
+  const [cRecorrente, setCRecorrente] = useState(true)
+  const [cNotas, setCNotas] = useState('')
   const [emailConvite, setEmailConvite] = useState('')
   const [casalConvite, setCasalConvite] = useState('')
   const [saving, setSaving] = useState(false)
@@ -46,6 +56,33 @@ export default function Admin({ session }) {
       const ass = assData.data || []
       setAssinaturas(ass)
       setConvites(convData.data || [])
+
+      // Carrega custos e receita mensal
+      const [custosData, receitaData] = await Promise.all([
+        supabase.from('custos_infra').select('*').eq('ativo', true).order('nome'),
+        supabase.from('receita_mensal').select('*').order('ano', { ascending: false }).order('mes', { ascending: false }).limit(12),
+      ])
+      setCustos(custosData.data || [])
+
+      // Consolida receita mensal dos dados reais de assinaturas
+      const now = new Date()
+      const mesAtual = now.getMonth()
+      const anoAtual = now.getFullYear()
+      const premiumAtivos = ass.filter(a => a.plano === 'premium' && a.status === 'ativo').length
+      const receitaAtualBrl = premiumAtivos * 24
+
+      // Upsert receita do mês atual
+      await supabase.from('receita_mensal').upsert({
+        mes: mesAtual, ano: anoAtual,
+        total_brl: receitaAtualBrl,
+        assinantes: ass.length,
+        novos: ass.filter(a => {
+          const d = new Date(a.created_at)
+          return d.getMonth() === mesAtual && d.getFullYear() === anoAtual
+        }).length,
+      }, { onConflict: 'mes,ano' })
+
+      setReceitaMensal(receitaData.data || [])
 
       // Métricas de negócio — sem dados financeiros pessoais
       const total = ass.length
@@ -154,6 +191,41 @@ export default function Admin({ session }) {
     loadData()
   }
 
+  // ── Funções financeiras ──────────────────────────────
+  async function salvarCusto() {
+    if (!cNome) return
+    const now = new Date()
+    const payload = {
+      nome: cNome, categoria: cCategoria,
+      valor_usd: parseFloat(cValorUsd) || 0,
+      valor_brl: parseFloat(cValorBrl) || 0,
+      recorrente: cRecorrente, notas: cNotas, ativo: true,
+      mes: cRecorrente ? null : now.getMonth(),
+      ano: cRecorrente ? null : now.getFullYear(),
+    }
+    if (editCusto) {
+      await supabase.from('custos_infra').update(payload).eq('id', editCusto.id)
+    } else {
+      await supabase.from('custos_infra').insert(payload)
+    }
+    setModalCusto(false); setEditCusto(null)
+    setCNome(''); setCCategoria('hosting'); setCValorUsd(''); setCValorBrl(''); setCNotas('')
+    loadData()
+  }
+
+  function abrirModalCusto(c = null) {
+    setEditCusto(c)
+    setCNome(c?.nome || ''); setCCategoria(c?.categoria || 'hosting')
+    setCValorUsd(c ? String(c.valor_usd) : ''); setCValorBrl(c ? String(c.valor_brl) : '')
+    setCRecorrente(c?.recorrente !== false); setCNotas(c?.notas || '')
+    setModalCusto(true)
+  }
+
+  async function desativarCusto(id) {
+    await supabase.from('custos_infra').update({ ativo: false }).eq('id', id)
+    loadData()
+  }
+
   async function cancelarConvite(id) {
     await supabase.from('convites').update({ status: 'cancelado' }).eq('id', id)
     loadData()
@@ -237,7 +309,7 @@ export default function Admin({ session }) {
 
       {/* Abas */}
       <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)', marginBottom: 20 }}>
-        {[['visao','📊 Visão geral'],['assinaturas','💳 Assinaturas'],['convites','✉️ Convites']].map(([id, label]) => (
+        {[['visao','📊 Visão geral'],['assinaturas','💳 Assinaturas'],['financeiro','💰 Financeiro'],['convites','✉️ Convites']].map(([id, label]) => (
           <button key={id} onClick={() => setAba(id)}
             style={{ padding: '9px 16px', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: aba === id ? 600 : 400, color: aba === id ? 'var(--primary)' : 'var(--secondary)',
@@ -448,6 +520,155 @@ export default function Admin({ session }) {
         </div>
       )}
 
+      {/* ── FINANCEIRO ── */}
+      {aba === 'financeiro' && (() => {
+          const USD_BRL = 5.6
+          const custosMensais = custos.filter(c => c.recorrente)
+          const totalCustoUsd = custosMensais.reduce((s,c) => s + (c.valor_usd||0), 0)
+          const totalCustoBrl = custosMensais.reduce((s,c) => s + (c.valor_brl || (c.valor_usd||0) * USD_BRL), 0)
+          const premiumAtivos = assinaturas.filter(a => a.plano === 'premium' && a.status === 'ativo').length
+          const receitaMes = premiumAtivos * 24
+          const margemMes = receitaMes - totalCustoBrl
+          const breakEvenCasais = totalCustoBrl > 0 ? Math.ceil(totalCustoBrl / 24) : 2
+          const MESES_C = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+          const INICIO_MES = 5; const INICIO_ANO = 2025
+          const now = new Date()
+          const mesesDesdeInicio = (now.getFullYear() - INICIO_ANO) * 12 + (now.getMonth() - INICIO_MES) + 1
+          const custoAcumulado = totalCustoBrl * mesesDesdeInicio
+          const receitaAcumulada = receitaMensal.reduce((s,r) => s + (r.total_brl||0), 0)
+          const divida = Math.max(0, custoAcumulado - receitaAcumulada)
+          const mesesPayback = receitaMes > totalCustoBrl && divida > 0 ? Math.ceil(divida / (receitaMes - totalCustoBrl)) : null
+          const CAT_ICONS = { hosting:'🖥️', ia:'🤖', database:'🗄️', dominio:'🌐', outro:'📦' }
+          return (
+            <div>
+              <div className="grid-4" style={{ marginBottom:16 }}>
+                <div className="mini-card" style={{ borderTop:'2px solid ' + (margemMes >= 0 ? 'var(--green)' : 'var(--red)') }}>
+                  <div className="lbl">Margem este mês</div>
+                  <div className="val" style={{ color: margemMes >= 0 ? 'var(--green)' : 'var(--red)', fontSize:20 }}>
+                    {margemMes >= 0 ? '+' : '-'}R$ {Math.abs(margemMes).toFixed(0)}
+                  </div>
+                  <div className="sub">{margemMes >= 0 ? '✅ positivo' : '🔴 negativo'}</div>
+                </div>
+                <div className="mini-card" style={{ borderTop:'2px solid var(--eden-terra)' }}>
+                  <div className="lbl">Custo mensal infra</div>
+                  <div className="val" style={{ fontSize:20 }}>R$ {totalCustoBrl.toFixed(0)}</div>
+                  <div className="sub">US$ {totalCustoUsd.toFixed(0)}/mês</div>
+                </div>
+                <div className="mini-card" style={{ borderTop:'2px solid var(--eden-gold)' }}>
+                  <div className="lbl">Break even</div>
+                  <div className="val" style={{ fontSize:20 }}>{breakEvenCasais} casais</div>
+                  <div className="sub">a R$ 24/mês cada</div>
+                </div>
+                <div className="mini-card" style={{ borderTop:'2px solid ' + (divida <= 0 ? 'var(--green)' : 'var(--purple)') }}>
+                  <div className="lbl">Investimento a recuperar</div>
+                  <div className="val" style={{ color: divida <= 0 ? 'var(--green)' : 'var(--purple)', fontSize:20 }}>
+                    R$ {divida.toFixed(0)}
+                  </div>
+                  <div className="sub">
+                    {divida <= 0 ? '🎉 Payback atingido!' : mesesPayback ? mesesPayback + ' meses para zerar' : 'Sem receita ainda'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="card" style={{ marginBottom:16 }}>
+                <div className="row-between" style={{ marginBottom:14 }}>
+                  <div className="card-title">📈 Histórico mensal (desde jun/2025)</div>
+                  <span style={{ fontSize:11, color:'var(--secondary)' }}>{mesesDesdeInicio} meses · acumulado: -R$ {custoAcumulado.toFixed(0)} custo / +R$ {receitaAcumulada.toFixed(0)} receita</span>
+                </div>
+                <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:8, alignItems:'flex-end' }}>
+                  {Array.from({ length: Math.max(1, mesesDesdeInicio) }).map((_, i) => {
+                    const m = (INICIO_MES + i) % 12
+                    const a = INICIO_ANO + Math.floor((INICIO_MES + i) / 12)
+                    const rec = receitaMensal.find(r => r.mes === m && r.ano === a)
+                    const receita = rec ? rec.total_brl : 0
+                    const margem = receita - totalCustoBrl
+                    const maxH = 64
+                    const h = totalCustoBrl > 0 ? Math.max(4, Math.min(maxH, (Math.abs(margem) / (totalCustoBrl * 2)) * maxH)) : 8
+                    return (
+                      <div key={i} style={{ flexShrink:0, textAlign:'center', width:48 }}>
+                        <div style={{ fontSize:10, fontWeight:600, color: margem >= 0 ? 'var(--green)' : 'var(--red)', marginBottom:4 }}>
+                          {margem >= 0 ? '+' : ''}{margem.toFixed(0)}
+                        </div>
+                        <div style={{ height:h, background: margem >= 0 ? 'var(--green)' : 'var(--red)', borderRadius:4, opacity: margem === 0 ? 0.25 : 0.85 }} />
+                        <div style={{ fontSize:10, color:'var(--secondary)', marginTop:5 }}>{MESES_C[m]}/{String(a).slice(2)}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="card" style={{ marginBottom:16 }}>
+                <div className="row-between" style={{ marginBottom:14 }}>
+                  <div className="card-title">🖥️ Custos de infraestrutura</div>
+                  <button className="btn btn-primary btn-sm" onClick={() => abrirModalCusto()}>+ Adicionar</button>
+                </div>
+                {custos.length === 0 ? (
+                  <div className="empty" style={{ padding:24 }}>
+                    <div>Nenhum custo cadastrado</div>
+                    <button className="btn btn-primary btn-sm" style={{ marginTop:8 }} onClick={() => abrirModalCusto()}>Cadastrar agora</button>
+                  </div>
+                ) : (
+                  <div className="table-wrap">
+                    <table>
+                      <thead><tr><th>Serviço</th><th>Categoria</th><th>USD</th><th>BRL/mês</th><th>Tipo</th><th></th></tr></thead>
+                      <tbody>
+                        {custos.map(c => (
+                          <tr key={c.id}>
+                            <td><strong>{c.nome}</strong>{c.notas && <div style={{ fontSize:11, color:'var(--secondary)' }}>{c.notas}</div>}</td>
+                            <td><span style={{ fontSize:12 }}>{CAT_ICONS[c.categoria] || '📦'} {c.categoria}</span></td>
+                            <td style={{ color:'var(--secondary)' }}>{c.valor_usd > 0 ? 'US$ ' + c.valor_usd : '—'}</td>
+                            <td style={{ fontWeight:600 }}>R$ {(c.valor_brl || (c.valor_usd||0) * USD_BRL).toFixed(2)}</td>
+                            <td><span className={'badge ' + (c.recorrente ? 'badge-blue' : 'badge-yellow')}>{c.recorrente ? 'Mensal' : 'Pontual'}</span></td>
+                            <td>
+                              <div style={{ display:'flex', gap:6 }}>
+                                <button className="btn btn-outline btn-sm" onClick={() => abrirModalCusto(c)}>✏️</button>
+                                <button className="btn btn-sm" style={{ background:'var(--red-bg)', color:'var(--red)' }} onClick={() => desativarCusto(c.id)}>✕</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div style={{ borderTop:'0.5px solid var(--border)', marginTop:10, paddingTop:10, display:'flex', justifyContent:'flex-end', gap:20, fontSize:13 }}>
+                      <span style={{ color:'var(--secondary)' }}>Total mensal:</span>
+                      <span style={{ fontWeight:700 }}>US$ {totalCustoUsd.toFixed(2)} · R$ {totalCustoBrl.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="card">
+                <div className="card-title" style={{ marginBottom:14 }}>🎯 Simulação de break even</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {[1,2,3,5,10,20,50].map(n => {
+                    const rec = n * 24
+                    const mar = rec - totalCustoBrl
+                    const mp = mar > 0 && divida > 0 ? Math.ceil(divida / mar) : null
+                    return (
+                      <div key={n} style={{ display:'flex', alignItems:'center', gap:12, padding:'8px 12px', borderRadius:10,
+                        background: n === breakEvenCasais ? 'var(--yellow-bg)' : n > breakEvenCasais ? 'var(--green-bg)' : 'var(--bg)' }}>
+                        <div style={{ width:90, fontSize:13, fontWeight: n === breakEvenCasais ? 700 : 500 }}>{n} casal{n > 1 ? '(is)' : ''}</div>
+                        <div style={{ flex:1, height:5, background:'var(--border)', borderRadius:3, overflow:'hidden' }}>
+                          <div style={{ height:'100%', width: Math.min(100, Math.max(0, (rec / Math.max(totalCustoBrl * 2, 1)) * 100)) + '%',
+                            background: mar >= 0 ? 'var(--green)' : 'var(--red)', borderRadius:3 }} />
+                        </div>
+                        <div style={{ width:90, textAlign:'right', fontSize:13, fontWeight:600, color: mar >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                          {mar >= 0 ? '+' : ''}R$ {mar.toFixed(0)}/mês
+                        </div>
+                        <div style={{ width:110, fontSize:11, color:'var(--secondary)' }}>
+                          {mp ? 'payback: ' + mp + 'm' : mar > 0 ? '✅ quitado' : ''}
+                        </div>
+                        {n === breakEvenCasais && <span className="badge badge-yellow">break even</span>}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+
       {/* ── CONVITES ── */}
       {aba === 'convites' && (
         <div>
@@ -532,6 +753,56 @@ export default function Admin({ session }) {
           </div>
         </div>
       )}
+      {/* ── MODAL CUSTO ── */}
+      {modalCusto && (
+        <div className="modal-overlay" onClick={() => setModalCusto(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>{editCusto ? 'Editar custo' : 'Novo custo de infraestrutura'}</h3>
+            <div className="form-group">
+              <label className="form-label">Nome do serviço</label>
+              <input className="form-input" placeholder="Ex: Railway, Vercel, Claude API" value={cNome} onChange={e => setCNome(e.target.value)} autoFocus />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Categoria</label>
+              <select className="form-select" value={cCategoria} onChange={e => setCCategoria(e.target.value)}>
+                <option value="hosting">🖥️ Hosting</option>
+                <option value="ia">🤖 IA / LLM</option>
+                <option value="database">🗄️ Database</option>
+                <option value="dominio">🌐 Domínio</option>
+                <option value="outro">📦 Outro</option>
+              </select>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div className="form-group">
+                <label className="form-label">Valor em USD</label>
+                <input className="form-input" type="number" placeholder="Ex: 5.00" value={cValorUsd} onChange={e => setCValorUsd(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Valor em BRL (override)</label>
+                <input className="form-input" type="number" placeholder="Deixe vazio para converter" value={cValorBrl} onChange={e => setCValorBrl(e.target.value)} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Tipo</label>
+              <select className="form-select" value={cRecorrente ? 'sim' : 'nao'} onChange={e => setCRecorrente(e.target.value === 'sim')}>
+                <option value="sim">📅 Mensal (recorrente)</option>
+                <option value="nao">1️⃣ Pontual (uma vez)</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Notas</label>
+              <input className="form-input" placeholder="Ex: Hobby plan, inclui $5 de crédito" value={cNotas} onChange={e => setCNotas(e.target.value)} />
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setModalCusto(false)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={salvarCusto} disabled={!cNome}>
+                {editCusto ? 'Salvar alterações' : 'Adicionar custo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
