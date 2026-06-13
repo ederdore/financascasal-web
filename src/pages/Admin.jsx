@@ -195,13 +195,16 @@ export default function Admin({ session }) {
   async function salvarCusto() {
     if (!cNome) return
     const now = new Date()
+    const nowSave = new Date()
     const payload = {
       nome: cNome, categoria: cCategoria,
       valor_usd: parseFloat(cValorUsd) || 0,
       valor_brl: parseFloat(cValorBrl) || 0,
       recorrente: cRecorrente, notas: cNotas, ativo: true,
-      mes: cRecorrente ? null : now.getMonth(),
-      ano: cRecorrente ? null : now.getFullYear(),
+      mes: cRecorrente ? null : nowSave.getMonth(),
+      ano: cRecorrente ? null : nowSave.getFullYear(),
+      mes_inicio: nowSave.getMonth(),
+      ano_inicio: nowSave.getFullYear(),
     }
     if (editCusto) {
       await supabase.from('custos_infra').update(payload).eq('id', editCusto.id)
@@ -523,18 +526,39 @@ export default function Admin({ session }) {
       {/* ── FINANCEIRO ── */}
       {aba === 'financeiro' && (() => {
           const USD_BRL = 5.6
+          const USD_BRL_RATE = 5.6
           const custosMensais = custos.filter(c => c.recorrente)
           const totalCustoUsd = custosMensais.reduce((s,c) => s + (c.valor_usd||0), 0)
-          const totalCustoBrl = custosMensais.reduce((s,c) => s + (c.valor_brl || (c.valor_usd||0) * USD_BRL), 0)
+          const totalCustoBrl = custosMensais.reduce((s,c) => s + (c.valor_brl || (c.valor_usd||0) * USD_BRL_RATE), 0)
           const premiumAtivos = assinaturas.filter(a => a.plano === 'premium' && a.status === 'ativo').length
           const receitaMes = premiumAtivos * 24
           const margemMes = receitaMes - totalCustoBrl
           const breakEvenCasais = totalCustoBrl > 0 ? Math.ceil(totalCustoBrl / 24) : 2
           const MESES_C = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
-          const INICIO_MES = 5; const INICIO_ANO = 2026
-          const now = new Date()
-          const mesesDesdeInicio = (now.getFullYear() - INICIO_ANO) * 12 + (now.getMonth() - INICIO_MES) + 1
-          const custoAcumulado = totalCustoBrl * mesesDesdeInicio
+          const nowCalc = new Date()
+          const nowMes = nowCalc.getMonth()
+          const nowAno = nowCalc.getFullYear()
+
+          // Custo acumulado respeitando mes_inicio de cada custo
+          function mesesAtivos(c) {
+            const mi = c.mes_inicio ?? 5
+            const ai = c.ano_inicio ?? 2026
+            return Math.max(0, (nowAno - ai) * 12 + (nowMes - mi) + 1)
+          }
+          const custoAcumulado = custosMensais.reduce((s,c) => {
+            const valorMes = c.valor_brl || (c.valor_usd||0) * USD_BRL_RATE
+            return s + valorMes * mesesAtivos(c)
+          }, 0)
+
+          // Menor mês de início entre todos os custos
+          const inicioMais = custosMensais.reduce((acc, c) => {
+            const ai = c.ano_inicio ?? 2026
+            const mi = c.mes_inicio ?? 5
+            if (ai < acc.ano || (ai === acc.ano && mi < acc.mes)) return { mes: mi, ano: ai }
+            return acc
+          }, { mes: nowMes, ano: nowAno })
+
+          const mesesDesdeInicio = Math.max(1, (nowAno - inicioMais.ano) * 12 + (nowMes - inicioMais.mes) + 1)
           const receitaAcumulada = receitaMensal.reduce((s,r) => s + (r.total_brl||0), 0)
           const divida = Math.max(0, custoAcumulado - receitaAcumulada)
           const mesesPayback = receitaMes > totalCustoBrl && divida > 0 ? Math.ceil(divida / (receitaMes - totalCustoBrl)) : null
@@ -577,8 +601,8 @@ export default function Admin({ session }) {
                 </div>
                 <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:8, alignItems:'flex-end' }}>
                   {Array.from({ length: Math.max(1, mesesDesdeInicio) }).map((_, i) => {
-                    const m = (INICIO_MES + i) % 12
-                    const a = INICIO_ANO + Math.floor((INICIO_MES + i) / 12)
+                    const m = (inicioMais.mes + i) % 12
+                    const a = inicioMais.ano + Math.floor((inicioMais.mes + i) / 12)
                     const rec = receitaMensal.find(r => r.mes === m && r.ano === a)
                     const receita = rec ? rec.total_brl : 0
                     const margem = receita - totalCustoBrl
@@ -618,7 +642,14 @@ export default function Admin({ session }) {
                             <td><span style={{ fontSize:12 }}>{CAT_ICONS[c.categoria] || '📦'} {c.categoria}</span></td>
                             <td style={{ color:'var(--secondary)' }}>{c.valor_usd > 0 ? 'US$ ' + c.valor_usd : '—'}</td>
                             <td style={{ fontWeight:600 }}>R$ {(c.valor_brl || (c.valor_usd||0) * USD_BRL).toFixed(2)}</td>
-                            <td><span className={'badge ' + (c.recorrente ? 'badge-blue' : 'badge-yellow')}>{c.recorrente ? 'Mensal' : 'Pontual'}</span></td>
+                            <td>
+                            <span className={'badge ' + (c.recorrente ? 'badge-blue' : 'badge-yellow')}>{c.recorrente ? 'Mensal' : 'Pontual'}</span>
+                            {c.recorrente && c.mes_inicio != null && (
+                              <div style={{ fontSize:10, color:'var(--secondary)', marginTop:3 }}>
+                                desde {MESES_C[c.mes_inicio]}/{String(c.ano_inicio||2026).slice(2)}
+                              </div>
+                            )}
+                          </td>
                             <td>
                               <div style={{ display:'flex', gap:6 }}>
                                 <button className="btn btn-outline btn-sm" onClick={() => abrirModalCusto(c)}>✏️</button>
