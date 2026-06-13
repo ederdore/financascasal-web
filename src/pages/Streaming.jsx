@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase, fmt, MESES_CURTO } from '../supabase.js'
+import { chamarIA } from '../components/IAEngine.js'
 
 export default function Streaming({ session, profile }) {
   const [recorrencias, setRecorrencias] = useState([])
@@ -19,6 +20,8 @@ export default function Streaming({ session, profile }) {
   const [autoLancar, setAutoLancar] = useState(true)
   const [saving, setSaving] = useState(false)
   const [autoLancados, setAutoLancados] = useState(new Set())
+  const [dicaIA, setDicaIA] = useState('')
+  const [loadingDica, setLoadingDica] = useState(false)
   const now = new Date()
 
   useEffect(() => { loadData() }, [])
@@ -155,25 +158,72 @@ export default function Streaming({ session, profile }) {
     } catch (e) { alert('Erro: ' + e.message) } finally { setSaving(false) }
   }
 
+  // ── Agrupamento por categoria ────────────────────────
   const ativas = recorrencias.filter(r => r.ativa)
   const totalMes = ativas.reduce((s, r) => s + r.valor, 0)
   const pendentes = ativas.filter(r => !jaLancada(r))
   const lancadasMes = ativas.filter(r => jaLancada(r))
   const paraLancarHoje = pendentes.filter(r => deveSerLancadaHoje(r))
 
+  // Agrupa por categoria
+  const porCategoria = ativas.reduce((acc, r) => {
+    const cat = r.categoria || 'Outros'
+    if (!acc[cat]) acc[cat] = { total: 0, itens: [] }
+    acc[cat].total += r.valor
+    acc[cat].itens.push(r)
+    return acc
+  }, {})
+
+  const categorias = Object.entries(porCategoria).sort((a, b) => b[1].total - a[1].total)
+  const CAT_COLORS = {
+    Assinaturas: '#3B82F6', Saúde: '#10B981', Lazer: '#F59E0B',
+    Educação: '#8B5CF6', Outros: '#6B7280', Alimentação: '#EF4444',
+    Moradia: '#C17F5A', Transporte: '#3D5A3E',
+  }
+
+  async function gerarDicaIA() {
+    if (!ativas.length) return
+    setLoadingDica(true); setDicaIA('')
+    try {
+      const lista = ativas.map(r => `${r.nome}: R$${r.valor}/mês (${r.categoria})`).join(', ')
+      const prompt = `Consultor financeiro. Casal tem estas assinaturas mensais: ${lista}. Total: R$${totalMes.toFixed(0)}/mês = R$${(totalMes*12).toFixed(0)}/ano. Objetivo: ${profile.objetivo || 'controle'}. Dê 2-3 sugestões práticas e diretas para reduzir ou otimizar esses gastos. Seja específico (mencione os serviços). Máx 80 palavras.`
+      const res = await chamarIA(prompt, profile.plano || 'free')
+      setDicaIA(res)
+    } catch(e) { console.warn(e) }
+    finally { setLoadingDica(false) }
+  }
+
   if (loading) return <div className="empty">Carregando...</div>
 
   return (
     <div>
-      {/* Header */}
-      <div className="row-between" style={{ marginBottom: 16 }}>
+      {/* ── DICA IA ── */}
+      {(dicaIA || loadingDica) && (
+        <div style={{ background:'var(--eden-bark)', color:'#fff', borderRadius:14, padding:'14px 18px', marginBottom:16, display:'flex', alignItems:'flex-start', gap:12 }}>
+          <span style={{ fontSize:20, flexShrink:0 }}>🧠</span>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:0.8, opacity:0.5, textTransform:'uppercase', marginBottom:4 }}>Sugestão da IA</div>
+            {loadingDica
+              ? <div style={{ fontSize:13, opacity:0.6 }}>Analisando suas assinaturas...</div>
+              : <div style={{ fontSize:13, lineHeight:1.7 }}>{dicaIA}</div>}
+          </div>
+          {!loadingDica && <button onClick={() => setDicaIA('')} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.4)', cursor:'pointer', fontSize:20, padding:0, flexShrink:0 }}>×</button>}
+        </div>
+      )}
+
+      {/* ── HEADER ── */}
+      <div className="row-between" style={{ marginBottom:16 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--blue)' }}>{fmt(totalMes)}</div>
-          <div style={{ fontSize: 12, color: 'var(--secondary)' }}>
-            Total/mês · Anual: {fmt(totalMes * 12)} · {ativas.length} ativa(s)
+          <div style={{ fontSize:28, fontWeight:700, letterSpacing:-1, color:'var(--primary)' }}>{fmt(totalMes)}<span style={{ fontSize:13, fontWeight:400, color:'var(--secondary)', marginLeft:8 }}>/mês</span></div>
+          <div style={{ fontSize:12, color:'var(--secondary)', marginTop:3 }}>
+            {fmt(totalMes * 12)}/ano · {ativas.length} assinatura(s) ativa(s)
           </div>
         </div>
-        <div className="row" style={{ gap: 8 }}>
+        <div className="row" style={{ gap:8 }}>
+          <button className="btn btn-outline" onClick={gerarDicaIA} disabled={loadingDica || !ativas.length}
+            title="Pedir sugestão da IA para reduzir assinaturas">
+            {loadingDica ? '⏳' : '🧠 IA'}
+          </button>
           {pendentes.length > 0 && (
             <button className="btn btn-green" onClick={lancarTodas} disabled={saving}>
               ▶ Lançar todas ({pendentes.length})
@@ -182,6 +232,81 @@ export default function Streaming({ session, profile }) {
           <button className="btn btn-primary" onClick={() => openModal()}>+ Nova assinatura</button>
         </div>
       </div>
+
+      {/* ── DASHBOARD POR CATEGORIA ── */}
+      {categorias.length > 0 && (
+        <div className="grid-2" style={{ marginBottom:16, gap:12 }}>
+          {/* Gráfico de barras por categoria */}
+          <div className="card">
+            <div className="card-title" style={{ marginBottom:14 }}>Por categoria</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {categorias.map(([cat, data]) => {
+                const pct = totalMes > 0 ? (data.total / totalMes) * 100 : 0
+                const cor = CAT_COLORS[cat] || '#6B7280'
+                return (
+                  <div key={cat}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5, fontSize:13 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <div style={{ width:10, height:10, borderRadius:3, background:cor, flexShrink:0 }} />
+                        <span style={{ fontWeight:500 }}>{cat}</span>
+                        <span style={{ fontSize:11, color:'var(--secondary)' }}>{data.itens.length} item(s)</span>
+                      </div>
+                      <div style={{ textAlign:'right' }}>
+                        <span style={{ fontWeight:600 }}>{fmt(data.total)}</span>
+                        <span style={{ fontSize:11, color:'var(--secondary)', marginLeft:6 }}>{pct.toFixed(0)}%</span>
+                      </div>
+                    </div>
+                    <div style={{ height:5, background:'var(--border)', borderRadius:3, overflow:'hidden' }}>
+                      <div style={{ height:'100%', width:`${pct}%`, background:cor, borderRadius:3, transition:'width 0.4s ease' }} />
+                    </div>
+                    {/* Tooltip itens */}
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:5 }}>
+                      {data.itens.map(r => (
+                        <span key={r.id} title={`${r.nome} — ${fmt(r.valor)}/mês · dia ${r.dia_cobranca}`}
+                          style={{ fontSize:10, background:`${cor}18`, color:cor, padding:'2px 7px', borderRadius:20, cursor:'default', border:`0.5px solid ${cor}30` }}>
+                          {r.nome} {fmt(r.valor)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Resumo rápido */}
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <div className="card" style={{ flex:1 }}>
+              <div className="card-title" style={{ marginBottom:12 }}>Resumo</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {[
+                  ['Total mensal', fmt(totalMes), 'var(--primary)'],
+                  ['Total anual', fmt(totalMes * 12), 'var(--eden-terra)'],
+                  ['Lançadas este mês', `${lancadasMes.length} / ${ativas.length}`, 'var(--green)'],
+                  ['Pendentes', `${pendentes.length}`, pendentes.length > 0 ? 'var(--yellow)' : 'var(--secondary)'],
+                ].map(([label, val, cor]) => (
+                  <div key={label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 0', borderBottom:'0.5px solid var(--border)' }}>
+                    <span style={{ fontSize:12, color:'var(--secondary)' }}>{label}</span>
+                    <span style={{ fontSize:13, fontWeight:600, color:cor }}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Maior gasto */}
+            {ativas.length > 0 && (
+              <div className="card" style={{ background:'var(--eden-sand)', border:'none' }}>
+                <div style={{ fontSize:11, color:'var(--secondary)', marginBottom:6, fontWeight:600, textTransform:'uppercase', letterSpacing:0.5 }}>Maior assinatura</div>
+                <div style={{ fontWeight:600, fontSize:15, color:'var(--primary)' }}>
+                  {[...ativas].sort((a,b) => b.valor - a.valor)[0]?.nome}
+                </div>
+                <div style={{ fontSize:13, color:'var(--eden-terra)', marginTop:2 }}>
+                  {fmt([...ativas].sort((a,b) => b.valor - a.valor)[0]?.valor)}/mês
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Alerta — para lançar hoje */}
       {paraLancarHoje.length > 0 && (
