@@ -312,7 +312,7 @@ export default function Streaming({ session, profile }) {
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3>{edit ? '✏️ Editar assinatura' : '📺 Nova assinatura'}</h3>
+            <h3>{edit ? '✏️ Editar assinatura' : '📋 Nova assinatura'}</h3>
             <div style={{ background: '#EEF6FF', borderRadius: 10, padding: 12, marginBottom: 16, fontSize: 13, color: 'var(--blue)' }}>
               💡 A assinatura será lançada automaticamente na fatura do cartão no dia configurado
             </div>

@@ -98,7 +98,7 @@ const TABS = [
   { id: 'despesas',      icon: 'despesas',      label: 'Despesas' },
   { id: 'cartoes',       icon: 'cartoes',       label: 'Cartões' },
   { id: 'contas',        icon: 'contas',        label: 'Contas' },
-  { id: 'streaming',     icon: 'streaming',     label: 'Streaming' },
+  { id: 'streaming',     icon: 'streaming',     label: 'Assinaturas' },
   { id: 'rendafixa',     icon: 'rendafixa',     label: 'Renda Fixa' },
   { id: 'reserva',       icon: 'reserva',       label: 'Reserva' },
   { id: 'metas',         icon: 'metas',         label: 'Metas' },
