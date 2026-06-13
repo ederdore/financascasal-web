@@ -16,6 +16,7 @@ export default function Streaming({ session, profile }) {
   const [cat, setCat] = useState('Assinaturas')
   const [quem, setQuem] = useState(profile.papel)
   const [ativa, setAtiva] = useState(true)
+  const [autoLancar, setAutoLancar] = useState(true)
   const [saving, setSaving] = useState(false)
   const [autoLancados, setAutoLancados] = useState(new Set())
   const now = new Date()
