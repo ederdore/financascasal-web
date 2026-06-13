@@ -65,9 +65,9 @@ export default function Admin({ session }) {
       setCustos(custosData.data || [])
 
       // Consolida receita mensal dos dados reais de assinaturas
-      const nowAdmin = new Date()
-      const mesAtual = nowAdmin.getMonth()
-      const anoAtual = nowAdmin.getFullYear()
+      const nowDate = new Date()
+      const mesAtual = nowDate.getMonth()
+      const anoAtual = nowDate.getFullYear()
       const premiumAtivos = ass.filter(a => a.plano === 'premium' && a.status === 'ativo').length
       const receitaAtualBrl = premiumAtivos * 24
 
@@ -531,7 +531,7 @@ export default function Admin({ session }) {
           const margemMes = receitaMes - totalCustoBrl
           const breakEvenCasais = totalCustoBrl > 0 ? Math.ceil(totalCustoBrl / 24) : 2
           const MESES_C = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
-          const INICIO_MES = 5; const INICIO_ANO = 2025
+          const INICIO_MES = 5; const INICIO_ANO = 2026
           const now = new Date()
           const mesesDesdeInicio = (now.getFullYear() - INICIO_ANO) * 12 + (now.getMonth() - INICIO_MES) + 1
           const custoAcumulado = totalCustoBrl * mesesDesdeInicio
