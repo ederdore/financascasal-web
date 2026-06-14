@@ -4,6 +4,7 @@ import { OBJETIVOS, buildPromptAnalise, buildPromptNotificacoes, chamarIA, busca
 import { useComparativoFase, ComparativoFase } from '../components/ComparativoFases.jsx'
 import { carregarMemoria, atualizarMemoria, formatarMemoriaIA, gerarAlertaProativo } from '../components/IAMemoria.js'
 import { useFaseAtual } from '../components/FasesFinanceiras.jsx'
+import { CardMaturidadeIA } from '../components/IAMaturidade.jsx'
 
 const TIPO_CORES = {
   alerta:    { bg: 'var(--red-bg)',    color: 'var(--red)',   icon: '⚠️' },
@@ -161,7 +162,9 @@ export default function IA({ session, profile }) {
   if (loadingDados) return <div className="empty">Carregando dados financeiros...</div>
 
   return (
+    
     <div>
+    <CardMaturidadeIA session={session} profile={profile} />
       {/* Objetivo atual */}
       <div className="card" style={{ marginBottom:16, background:`linear-gradient(135deg, var(--primary) 0%, #2D2D35 100%)`, color:'#fff', border:'none' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
