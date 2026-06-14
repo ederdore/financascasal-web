@@ -133,29 +133,32 @@ function SidebarMaturidade({ session, profile }) {
 
   return (
     <div style={{
-      margin: '8px 10px',
+      margin: '6px 10px 2px',
       padding: '10px 12px',
-      background: 'rgba(0,0,0,0.18)',
+      background: 'rgba(255,255,255,0.06)',
       borderRadius: 10,
-      border: '0.5px solid rgba(196,151,58,0.25)',
+      borderTop: '0.5px solid rgba(196,151,58,0.4)',
+      borderBottom: '0.5px solid rgba(196,151,58,0.4)',
+      borderLeft: '0.5px solid rgba(255,255,255,0.08)',
+      borderRight: '0.5px solid rgba(255,255,255,0.08)',
     }}>
       {/* Linha principal */}
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
         <span style={{ fontSize:16, lineHeight:1 }}>{nivelAtual.emoji}</span>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'#E8DCC8', letterSpacing:0.2 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:'#FAF6EF', letterSpacing:0.2 }}>
             IA {nivelAtual.nome}
           </div>
-          <div style={{ fontSize:9, color:'rgba(232,220,200,0.5)', marginTop:1 }}>
+          <div style={{ fontSize:10, color:'rgba(232,220,200,0.6)', marginTop:1 }}>
             {totalLancamentos} lançamento{totalLancamentos !== 1 ? 's' : ''}
           </div>
         </div>
         <span style={{
-          fontSize:9, fontWeight:700, letterSpacing:0.3,
-          background:'rgba(196,151,58,0.2)',
-          color:'#C4973A',
-          padding:'2px 7px', borderRadius:20,
-          border:'0.5px solid rgba(196,151,58,0.3)',
+          fontSize:10, fontWeight:700, letterSpacing:0.3,
+          background:'rgba(196,151,58,0.3)',
+          color:'#DFB86A',
+          padding:'2px 8px', borderRadius:20,
+          border:'0.5px solid rgba(196,151,58,0.5)',
           flexShrink:0,
         }}>
           Nv {nivelAtual.nivel}
@@ -165,22 +168,23 @@ function SidebarMaturidade({ session, profile }) {
       {/* Barra de progresso */}
       {proximo && (
         <>
-          <div style={{ height:3, background:'rgba(255,255,255,0.08)', borderRadius:2, overflow:'hidden', marginBottom:5 }}>
+          <div style={{ height:4, background:'rgba(255,255,255,0.1)', borderRadius:2, overflow:'hidden', marginBottom:6 }}>
             <div style={{
               height:'100%', width:`${pctProximo}%`,
               background:'linear-gradient(90deg, #C4973A, #DFB86A)',
               borderRadius:2, transition:'width 0.5s ease',
+              boxShadow:'0 0 6px rgba(196,151,58,0.5)',
             }} />
           </div>
-          <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:'rgba(232,220,200,0.45)' }}>
-            <span>{pctProximo}% completo</span>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'rgba(232,220,200,0.55)' }}>
+            <span>{pctProximo}%</span>
             <span>{proximo.emoji} {proximo.nome} em {proximo.lancamentos - totalLancamentos}</span>
           </div>
         </>
       )}
 
       {!proximo && (
-        <div style={{ fontSize:10, color:'#C4973A', fontWeight:700, textAlign:'center', marginTop:2 }}>
+        <div style={{ fontSize:10, color:'#DFB86A', fontWeight:700, textAlign:'center', marginTop:2 }}>
           🌺 Nível máximo atingido
         </div>
       )}
