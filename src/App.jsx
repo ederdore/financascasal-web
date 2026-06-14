@@ -20,6 +20,7 @@ import { useConquistas, CelebracaoModal } from './components/Conquistas.jsx'
 import { useFaseAtual, FaseBadge } from './components/FasesFinanceiras.jsx'
 import Onboarding from './pages/Onboarding.jsx'
 import { TrialBanner } from './components/StripeUpgrade.jsx'
+import { useMaturidadeIA } from './components/IAMaturidade.jsx'
 
 // SVG icons como strings para usar inline
 const ICONS = {
@@ -130,6 +131,43 @@ function AutoLancarRunner({ session, profile, onFase }) {
   return <CelebracaoModal conquistas={novasConquistas} onClose={dispensar} />
 }
 
+function SidebarMaturidade({ session, profile }) {
+  const { dados } = useMaturidadeIA(session, profile)
+  if (!dados) return null
+  const { nivelAtual, proximo, pctProximo, totalLancamentos } = dados
+  return (
+    <div style={{ padding:'10px 14px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.1)' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:7 }}>
+        <span style={{ fontSize:14 }}>{nivelAtual.emoji}</span>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:11, fontWeight:600, color:'var(--eden-cream)', lineHeight:1 }}>
+            IA {nivelAtual.nome}
+          </div>
+          <div style={{ fontSize:9, color:'rgba(232,220,200,0.5)', marginTop:1 }}>
+            {totalLancamentos} lançamentos
+          </div>
+        </div>
+        <span style={{ fontSize:9, background:'rgba(196,151,58,0.25)', color:'var(--eden-gold)', padding:'2px 6px', borderRadius:20, fontWeight:600 }}>
+          Nv {nivelAtual.nivel}
+        </span>
+      </div>
+      {proximo && (
+        <div>
+          <div style={{ height:3, background:'rgba(255,255,255,0.1)', borderRadius:2, overflow:'hidden' }}>
+            <div style={{ height:'100%', width:`${pctProximo}%`, background:'var(--eden-gold)', borderRadius:2, transition:'width 0.5s' }} />
+          </div>
+          <div style={{ fontSize:9, color:'rgba(232,220,200,0.4)', marginTop:4 }}>
+            {proximo.emoji} {proximo.nome} em {proximo.lancamentos - totalLancamentos} lançamentos
+          </div>
+        </div>
+      )}
+      {!proximo && (
+        <div style={{ fontSize:9, color:'var(--eden-gold)', fontWeight:600 }}>🌺 Nível máximo</div>
+      )}
+    </div>
+  )
+}
+
 export default function App() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -211,6 +249,8 @@ export default function App() {
             </div>
           </div>
         </div>
+        {/* ── Maturidade IA ── */}
+<SidebarMaturidade session={session} profile={profile} />
         <nav className="sidebar-nav">
           <div className="nav-section-label">Finanças</div>
           {TABS.slice(0, 6).map(t => (
