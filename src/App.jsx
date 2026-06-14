@@ -141,10 +141,12 @@ function SidebarMaturidade({ session, profile }) {
     }}>
       {/* Linha principal */}
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-        <span style={{ fontSize:16, lineHeight:1 }}>{nivelAtual.emoji}</span>
+        <div style={{ width:28, height:28, borderRadius:8, background:'#F3F0F9', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <span style={{ fontSize:15, lineHeight:1 }}>🧠</span>
+        </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:12, fontWeight:700, color:'#2C1F14', letterSpacing:0.2 }}>
-            IA {nivelAtual.nome}
+            {nivelAtual.emoji} IA {nivelAtual.nome}
           </div>
           <div style={{ fontSize:10, color:'#7A7060', marginTop:1 }}>
             {totalLancamentos} lançamento{totalLancamentos !== 1 ? 's' : ''}
@@ -264,7 +266,9 @@ export default function App() {
         {/* Logo */}
         <div className="sidebar-logo">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:30, height:30, borderRadius:9, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>🌿</div>
+            <div style={{ width:30, height:30, borderRadius:9, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <span style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:18, fontWeight:700, color:'#FAF6EF', lineHeight:1 }}>É</span>
+              </div>
             <div>
               <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:20, fontWeight:600, letterSpacing:0.3, color:'var(--eden-cream)' }}>Éden</h1>
               <p style={{ fontStyle:'italic', color:'rgba(232,220,200,0.55)', fontSize:10 }}>Finanças a dois, sem segredos.</p>
