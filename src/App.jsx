@@ -22,7 +22,6 @@ import Onboarding from './pages/Onboarding.jsx'
 import { TrialBanner } from './components/StripeUpgrade.jsx'
 import { useMaturidadeIA } from './components/IAMaturidade.jsx'
 
-// SVG icons como strings para usar inline
 const ICONS = {
   visao: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
     <rect x="3" y="3" width="6" height="6" rx="1.5"/>
@@ -111,58 +110,79 @@ const TABS = [
 
 function NavIcon({ id }) {
   return (
-    <div
-      className="icon"
-      dangerouslySetInnerHTML={{ __html: ICONS[id] || '' }}
-    />
+    <div className="icon" dangerouslySetInnerHTML={{ __html: ICONS[id] || '' }} />
   )
 }
 
-// Badge de fase na sidebar
 function SidebarFaseBadge({ session, profile }) {
   const { fase } = useFaseAtual(session, profile)
   return <FaseBadge fase={fase} />
 }
 
-// Componente invisível — auto-lançamento + conquistas
-function AutoLancarRunner({ session, profile, onFase }) {
+function AutoLancarRunner({ session, profile }) {
   useAutoLancarRecorrencias(session, profile)
   const { novasConquistas, dispensar } = useConquistas(session, profile)
   return <CelebracaoModal conquistas={novasConquistas} onClose={dispensar} />
 }
 
+// ── Maturidade IA na sidebar ──────────────────────────
 function SidebarMaturidade({ session, profile }) {
   const { dados } = useMaturidadeIA(session, profile)
   if (!dados) return null
   const { nivelAtual, proximo, pctProximo, totalLancamentos } = dados
+
   return (
-    <div style={{ padding:'10px 14px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.1)' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:7 }}>
-        <span style={{ fontSize:14 }}>{nivelAtual.emoji}</span>
-        <div style={{ flex:1 }}>
-          <div style={{ fontSize:11, fontWeight:600, color:'var(--eden-cream)', lineHeight:1 }}>
+    <div style={{
+      margin: '8px 10px',
+      padding: '10px 12px',
+      background: 'rgba(0,0,0,0.18)',
+      borderRadius: 10,
+      border: '0.5px solid rgba(196,151,58,0.25)',
+    }}>
+      {/* Linha principal */}
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+        <span style={{ fontSize:16, lineHeight:1 }}>{nivelAtual.emoji}</span>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:'#E8DCC8', letterSpacing:0.2 }}>
             IA {nivelAtual.nome}
           </div>
           <div style={{ fontSize:9, color:'rgba(232,220,200,0.5)', marginTop:1 }}>
-            {totalLancamentos} lançamentos
+            {totalLancamentos} lançamento{totalLancamentos !== 1 ? 's' : ''}
           </div>
         </div>
-        <span style={{ fontSize:9, background:'rgba(196,151,58,0.25)', color:'var(--eden-gold)', padding:'2px 6px', borderRadius:20, fontWeight:600 }}>
+        <span style={{
+          fontSize:9, fontWeight:700, letterSpacing:0.3,
+          background:'rgba(196,151,58,0.2)',
+          color:'#C4973A',
+          padding:'2px 7px', borderRadius:20,
+          border:'0.5px solid rgba(196,151,58,0.3)',
+          flexShrink:0,
+        }}>
           Nv {nivelAtual.nivel}
         </span>
       </div>
+
+      {/* Barra de progresso */}
       {proximo && (
-        <div>
-          <div style={{ height:3, background:'rgba(255,255,255,0.1)', borderRadius:2, overflow:'hidden' }}>
-            <div style={{ height:'100%', width:`${pctProximo}%`, background:'var(--eden-gold)', borderRadius:2, transition:'width 0.5s' }} />
+        <>
+          <div style={{ height:3, background:'rgba(255,255,255,0.08)', borderRadius:2, overflow:'hidden', marginBottom:5 }}>
+            <div style={{
+              height:'100%', width:`${pctProximo}%`,
+              background:'linear-gradient(90deg, #C4973A, #DFB86A)',
+              borderRadius:2, transition:'width 0.5s ease',
+            }} />
           </div>
-          <div style={{ fontSize:9, color:'rgba(232,220,200,0.4)', marginTop:4 }}>
-            {proximo.emoji} {proximo.nome} em {proximo.lancamentos - totalLancamentos} lançamentos
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:'rgba(232,220,200,0.45)' }}>
+            <span>{pctProximo}% completo</span>
+            <span>{proximo.emoji} {proximo.nome} em {proximo.lancamentos - totalLancamentos}</span>
           </div>
-        </div>
+        </>
       )}
+
       {!proximo && (
-        <div style={{ fontSize:9, color:'var(--eden-gold)', fontWeight:600 }}>🌺 Nível máximo</div>
+        <div style={{ fontSize:10, color:'#C4973A', fontWeight:700, textAlign:'center', marginTop:2 }}>
+          🌺 Nível máximo atingido
+        </div>
       )}
     </div>
   )
@@ -200,46 +220,48 @@ export default function App() {
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'var(--bg)' }}>
       <div style={{ textAlign:'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>💑</div>
+        <div style={{ fontSize:48, marginBottom:16 }}>🌿</div>
         <p style={{ color:'var(--secondary)' }}>Carregando...</p>
       </div>
     </div>
   )
 
-  // Onboarding para novos usuários
   if (session && profile && !profile.onboarding_completo) {
     return <Onboarding session={session} onComplete={() => loadProfile(session.user.id)} />
   }
 
-  // Usuário não logado — mostra landing com login integrado
   if (!session) return <Landing onLogin={() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) loadProfile(session.user.id)
     })
   }} />
 
-  // Logado mas sem perfil completo — redireciona para configurar
   if (!profile) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)' }}>
       <div style={{ textAlign:'center' }}>
-        <div style={{ fontSize:48, marginBottom:16 }}>💑</div>
+        <div style={{ fontSize:48, marginBottom:16 }}>🌿</div>
         <p style={{ color:'var(--secondary)', marginBottom:16 }}>Carregando seu perfil...</p>
       </div>
     </div>
   )
 
-  const papelBg = profile.papel === 'eu' ? 'var(--eu-bg)' : 'var(--ela-bg)'
+  const papelBg  = profile.papel === 'eu' ? 'var(--eu-bg)'   : 'var(--ela-bg)'
   const papelTxt = profile.papel === 'eu' ? 'var(--eu-text)' : 'var(--ela-text)'
 
-  const pages = { visao: Visao, bancos: Bancos, receitas: Receitas, despesas: Despesas,
-    cartoes: Cartoes, contas: Contas, streaming: Streaming, rendafixa: RendaFixa, reserva: Reserva,
-    metas: Metas, notificacoes: Notificacoes, ia: IA, configuracoes: Configuracoes, admin: Admin }
+  const pages = {
+    visao: Visao, bancos: Bancos, receitas: Receitas, despesas: Despesas,
+    cartoes: Cartoes, contas: Contas, streaming: Streaming, rendafixa: RendaFixa,
+    reserva: Reserva, metas: Metas, notificacoes: Notificacoes, ia: IA,
+    configuracoes: Configuracoes, admin: Admin,
+  }
   const PageComponent = pages[tab] || Visao
 
   return (
     <div className="app">
-      {/* Sidebar */}
+      {/* ── SIDEBAR ── */}
       <aside className="sidebar">
+
+        {/* Logo */}
         <div className="sidebar-logo">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <div style={{ width:30, height:30, borderRadius:9, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>🌿</div>
@@ -249,8 +271,11 @@ export default function App() {
             </div>
           </div>
         </div>
-        {/* ── Maturidade IA ── */}
-<SidebarMaturidade session={session} profile={profile} />
+
+        {/* Maturidade IA */}
+        <SidebarMaturidade session={session} profile={profile} />
+
+        {/* Nav */}
         <nav className="sidebar-nav">
           <div className="nav-section-label">Finanças</div>
           {TABS.slice(0, 6).map(t => (
@@ -274,6 +299,8 @@ export default function App() {
             </div>
           ))}
         </nav>
+
+        {/* Footer */}
         <div className="sidebar-footer">
           <div className="sidebar-profile">
             <div className="sidebar-avatar">
@@ -287,7 +314,7 @@ export default function App() {
               <div className="sidebar-user-role">{profile.papel?.toUpperCase()} · {profile.casal_code}</div>
             </div>
             <button onClick={logout} title="Sair"
-              style={{ background:'none', border:'none', color:'var(--secondary)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', flexShrink:0 }}>
+              style={{ background:'none', border:'none', color:'rgba(232,220,200,0.4)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', flexShrink:0 }}>
               <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
                 <path d="M13 3h4v14h-4M9 13l4-3-4-3M2 10h11"/>
               </svg>
@@ -296,17 +323,20 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* ── MAIN ── */}
       <main className="main">
+        <TrialBanner profile={profile} session={session} />
         <div className="topbar">
           <div className="topbar-left">
             <div className="topbar-page-icon">
-              <div style={{ width:18, height:18, color:'var(--secondary)' }} dangerouslySetInnerHTML={{ __html: ICONS[tab] || '' }} />
+              <div style={{ width:18, height:18 }} dangerouslySetInnerHTML={{ __html: ICONS[tab] || '' }} />
             </div>
             <h2>{TABS.find(t => t.id === tab)?.label}</h2>
           </div>
           <div className="topbar-right">
-            <span style={{ fontSize:11, color:'var(--secondary)', background:'var(--eden-sand)', padding:'4px 10px', borderRadius:8, fontFamily:'monospace', letterSpacing:1 }}>{profile.casal_code}</span>
+            <span style={{ fontSize:11, color:'var(--secondary)', background:'var(--eden-sand)', padding:'4px 10px', borderRadius:8, fontFamily:'monospace', letterSpacing:1 }}>
+              {profile.casal_code}
+            </span>
           </div>
         </div>
         <div className="page">
