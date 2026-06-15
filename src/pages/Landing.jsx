@@ -244,10 +244,10 @@ export default function Landing({ onLogin }) {
           O dinheiro não desaparece por acaso. Pequenos gastos, assinaturas esquecidas, compras impulsivas e falta de planejamento podem consumir milhares de reais por ano. O Éden ajuda vocês a enxergar exatamente onde o dinheiro está escorrendo e transformar essa diferença em patrimônio.
         </p>
         <div className="four-col" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,maxWidth:900,margin:'0 auto'}}>
-          {[['💸','Gastos invisíveis','Pequenas despesas que somam sem que percebam'],
-            ['📺','Assinaturas esquecidas','Serviços ativos que ninguém usa mais'],
-            ['🎯','Sem objetivos claros','Dinheiro que sobra sem destino definido'],
-            ['🤝','Falta de alinhamento','Decisões financeiras tomadas separadamente']].map(([e,t,d])=>(
+          {[['💸','O dinheiro some todo mês','Pequenas despesas, assinaturas esquecidas e compras impulsivas que somam milhares por ano — sem que percebam.'],
+            ['📺','Vocês pagam por serviços que não usam','Streaming, academia, planos... assinaturas ativas que ninguém lembra de cancelar.'],
+            ['🤷','O dinheiro que sobra não vai a lugar nenhum','Sem objetivo definido, o que poderia virar patrimônio vira gasto sem propósito.'],
+            ['⚡','Uma compra pode virar uma briga','Decisões financeiras tomadas separadamente geram surpresas — e surpresas geram conflito.']].map(([e,t,d])=>(
             <div key={t} style={{background:C,borderRadius:16,padding:24,textAlign:'left',border:`0.5px solid ${D}`}}>
               <div style={{fontSize:28,marginBottom:14}}>{e}</div>
               <div style={{fontWeight:600,fontSize:14,color:G,marginBottom:8}}>{t}</div>
@@ -353,15 +353,15 @@ export default function Landing({ onLogin }) {
           Não é apenas uma planilha digital. É um ambiente onde duas pessoas compartilham objetivos, acompanham resultados e tomam decisões financeiras juntos.
         </p>
         <div className="four-col" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:20}}>
-          {[['💳','Cartões e faturas','Acompanhe a fatura crescendo e pague com clareza.'],
-            ['📊','Gastos por categoria','Entendam para onde o dinheiro vai de verdade.'],
-            ['🔄','Contas recorrentes','Academia, planos, assinaturas — tudo automático.'],
-            ['🎯','Metas compartilhadas','Cada conquista planejada e acompanhada pelos dois.'],
-            ['🛡','Reserva de emergência','Meta calculada com base nos gastos reais.'],
-            ['📈','Renda fixa e investimentos','Patrimônio em crescimento, visível e organizado.'],
-            ['🤖','IA que aprende com vocês','Recomendações que evoluem com o tempo.'],
-            ['✉️','Bot no Telegram','Lance gastos sem abrir o app. Simples assim.'],
-            ['🏆','Gamificação financeira','Fases, conquistas e celebrações ao longo do caminho.']].map(([e,t,d])=>(
+          {[['💳','"De onde veio essa fatura?"','Nunca mais sejam surpreendidos. Acompanhem a fatura dos cartões crescendo em tempo real — os dois.'],
+            ['📊','"Para onde foi o dinheiro do mês?"','Cada real categorizado automaticamente. Enxerguem o padrão antes que ele vire problema.'],
+            ['🔄','"A gente paga isso ainda?"','Todas as assinaturas e contas recorrentes em um lugar. Cancelem o que não usam, paguem o que importa.'],
+            ['🎯','"A gente nunca poupa o suficiente."','Metas com valor, prazo e aporte mensal. Os dois acompanham o progresso — e se cobram juntos.'],
+            ['🛡','"E se acontecer uma emergência?"','Reserva calculada com base nos gastos reais de vocês. Saibam exatamente onde estão e quanto falta.'],
+            ['📈','"A gente deveria estar investindo mais."','Visualizem o patrimônio crescendo mês a mês. Do zero até a independência financeira.'],
+            ['🤖','"Ninguém nos avisa quando estamos errando."','A IA observa os padrões e avisa antes que o problema apareça na fatura.'],
+            ['✉️','"Anotar gasto é chato, aí a gente desiste."','Uma mensagem no Telegram. Sem abrir app, sem formulário, sem desculpa.'],
+            ['🏆','"A sensação é que nunca evoluímos."','Fases, conquistas e marcos celebrados. O progresso financeiro visível para os dois.']].map(([e,t,d])=>(
             <div key={t} style={{background:C,borderRadius:16,padding:'22px 24px',border:`0.5px solid ${D}`,transition:'transform .2s,box-shadow .2s',cursor:'default'}}
               onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 32px rgba(61,90,62,.1)'}}
               onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow=''}}>
@@ -388,7 +388,7 @@ export default function Landing({ onLogin }) {
             <div className="serif" style={{fontSize:44,fontWeight:700,color:G,lineHeight:1,marginBottom:4}}>R$ 0</div>
             <div style={{fontSize:13,color:M,marginBottom:28}}>para sempre</div>
             <ul style={{listStyle:'none',marginBottom:32}}>
-              {['1 banco e 1 cartão','Despesas e receitas','Metas e reserva','Código do casal','Bot Telegram básico'].map(i=>(
+              {['Comece sem cartão de crédito','Registre gastos pelos dois','Crie metas e acompanhe reserva','Código compartilhado do casal','Lance gastos pelo Telegram'].map(i=>(
                 <li key={i} style={{fontSize:14,color:M,padding:'7px 0',borderBottom:`0.5px solid ${D}`,display:'flex',gap:10}}>
                   <span style={{color:'#7A9E7E',fontWeight:700}}>✓</span>{i}
                 </li>
@@ -417,7 +417,7 @@ export default function Landing({ onLogin }) {
             <div className="serif" style={{fontSize:44,fontWeight:700,color:'#fff',lineHeight:1,marginBottom:4}}>R$ 24</div>
             <div style={{fontSize:13,color:'rgba(232,220,200,.6)',marginBottom:28}}>por casal · mês</div>
             <ul style={{listStyle:'none',marginBottom:32}}>
-              {['Bancos e cartões ilimitados','IA com Claude (análise profunda)','Aprendizado contínuo do casal','Bot Telegram com IA contextual','Reflexões comportamentais proativas','Conquistas e celebrações','Comparativo com outros casais'].map(i=>(
+              {['Sem limite de bancos e cartões','IA que aprende com vocês todo mês','Alertas antes de gastar demais','Bot no Telegram com respostas inteligentes','Reflexões que mudam comportamentos','Celebração de cada conquista do casal','Comparativo anônimo com outros casais'].map(i=>(
                 <li key={i} style={{fontSize:14,color:'rgba(232,220,200,.82)',padding:'7px 0',borderBottom:'0.5px solid rgba(255,255,255,.1)',display:'flex',gap:10}}>
                   <span style={{color:'#C4973A',fontWeight:700}}>✓</span>{i}
                 </li>
