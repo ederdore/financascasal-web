@@ -79,13 +79,13 @@ export default function Jardim({ session, profile }) {
       // Saúde do jardim
       const saude = calcularSaude({ saldo: totalRec-totalDesp, totalRec, pctReserva, totalMetas: metas.length, metasBatidas, poupanca })
 
-      // Vazamentos — categorias acima da média
+      // Vazamentos — top 5 categorias com maior gasto
       const cats = {}
       ;(desp.data||[]).forEach(d => { cats[d.categoria] = (cats[d.categoria]||0) + d.valor })
       const vadamentos = Object.entries(cats)
-        .filter(([,v]) => v > 300)
+        .filter(([,v]) => v > 50)
         .sort((a,b) => b[1]-a[1])
-        .slice(0,3)
+        .slice(0,5)
 
       setDados({
         totalRec, totalDesp, saldo: totalRec-totalDesp,
@@ -310,18 +310,33 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
           </div>
           {dados.vazamentos.length > 0 ? (
             <>
-              {dados.vazamentos.map(([cat, val])=>(
-                <div key={cat} style={{ display:'flex', justifyContent:'space-between', fontSize:13, padding:'6px 0', borderBottom:'0.5px solid var(--border)' }}>
-                  <span style={{ color:'var(--secondary)' }}>{cat}</span>
-                  <span style={{ fontWeight:600, color:'var(--yellow)' }}>{fmt(val)}/mês</span>
-                </div>
-              ))}
-              <div style={{ fontSize:11, color:'var(--secondary)', marginTop:10, fontStyle:'italic' }}>
-                Reduza esses gastos para acelerar suas metas.
+              {dados.vazamentos.map(([cat, val], i)=>{
+                const pct = dados.totalDesp > 0 ? Math.round((val/dados.totalDesp)*100) : 0
+                const cores = ['var(--red)','var(--yellow)','var(--yellow)','var(--secondary)','var(--secondary)']
+                return (
+                  <div key={cat}>
+                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:4 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                        <span style={{ fontSize:11, fontWeight:700, color:'var(--secondary)', width:14 }}>#{i+1}</span>
+                        <span style={{ fontWeight:500 }}>{cat}</span>
+                      </div>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ fontSize:11, color:'var(--secondary)' }}>{pct}%</span>
+                        <span style={{ fontWeight:700, color:cores[i] }}>{fmt(val)}</span>
+                      </div>
+                    </div>
+                    <div style={{ height:3, background:'var(--border)', borderRadius:2, overflow:'hidden', marginBottom:8 }}>
+                      <div style={{ height:'100%', width:`${Math.min(100,pct*2)}%`, background:cores[i], borderRadius:2, transition:'width .4s' }}/>
+                    </div>
+                  </div>
+                )
+              })}
+              <div style={{ fontSize:11, color:'var(--secondary)', marginTop:4, fontStyle:'italic', borderTop:'0.5px solid var(--border)', paddingTop:8 }}>
+                Total gasto: {fmt(dados.totalDesp)} · Reduza para acelerar suas metas.
               </div>
             </>
           ) : (
-            <div style={{ fontSize:13, color:'var(--green)', fontWeight:500 }}>✅ Nenhum vazamento identificado este mês</div>
+            <div style={{ fontSize:13, color:'var(--green)', fontWeight:500 }}>✅ Sem gastos registrados este mês</div>
           )}
         </div>
       </div>
