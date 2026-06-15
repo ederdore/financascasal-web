@@ -20,16 +20,18 @@ function getFaseJardim(saudeScore) {
 
 // ── Saúde do jardim ────────────────────────────────────
 function calcularSaude({ saldo, totalRec, pctReserva, totalMetas, metasBatidas, poupanca }) {
-  let score = 0
-  if (saldo >= 0) score += 25
-  if (poupanca >= 20) score += 20
-  else if (poupanca >= 10) score += 10
-  if (pctReserva >= 100) score += 25
-  else score += Math.floor((pctReserva / 100) * 20)
-  if (totalMetas > 0) score += 10
-  if (metasBatidas > 0) score += 10
-  if (totalRec > 0) score += 10
-  return Math.min(100, score)
+  // Base de 30 — usar o app já é positivo
+  let score = 30
+  if (totalRec > 0) score += 10       // tem receitas cadastradas
+  if (saldo >= 0) score += 15         // mês no azul
+  if (poupanca >= 20) score += 15     // poupando bem
+  else if (poupanca >= 5) score += 8  // poupando um pouco
+  if (pctReserva >= 100) score += 20  // reserva completa
+  else if (pctReserva >= 50) score += 10
+  else if (pctReserva > 0) score += 5
+  if (totalMetas > 0) score += 5      // tem metas
+  if (metasBatidas > 0) score += 5    // meta concluída
+  return Math.min(100, Math.max(30, score))
 }
 
 export default function Jardim({ session, profile }) {
@@ -123,7 +125,7 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
   return (
     <div>
       {/* ── HEADER ── */}
-      <div style={{ background:`linear-gradient(135deg, var(--eden-green) 0%, #2D4A2E 100%)`, borderRadius:18, padding:'28px 32px', marginBottom:20, color:'#fff', position:'relative', overflow:'hidden' }}>
+      <div style={{ background:'linear-gradient(135deg, #3D5A3E 0%, #2D4A2E 100%)', borderRadius:18, padding:'28px 32px', marginBottom:20, color:'#fff', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:-60, right:-60, width:300, height:300, background:'radial-gradient(circle,rgba(196,151,58,.15) 0%,transparent 65%)', pointerEvents:'none' }}/>
 
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:20 }}>
@@ -138,7 +140,7 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
           </div>
           <div style={{ textAlign:'right' }}>
             <div style={{ fontSize:10, color:'rgba(232,220,200,.5)', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Saúde do Jardim</div>
-            <div style={{ fontSize:36, fontWeight:700, color: dados.saude >= 70 ? '#C4973A' : dados.saude >= 40 ? '#DFB86A' : 'rgba(232,220,200,.7)', lineHeight:1 }}>
+            <div style={{ fontSize:36, fontWeight:700, color: dados.saude >= 70 ? '#C4973A' : '#DFB86A', lineHeight:1 }}>
               {dados.saude}%
             </div>
             <div style={{ fontSize:11, color:'rgba(232,220,200,.5)', marginTop:4 }}>{faseJardim.nome}</div>
@@ -171,7 +173,7 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
       <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:16, marginBottom:16 }}>
 
         {/* Fase visual */}
-        <div className="card" style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'28px 20px', background:`linear-gradient(135deg, #F8F5EE 0%, #EFF6EF 100%)` }}>
+        <div className="card" style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'28px 20px', background:'linear-gradient(135deg, #F8F5EE 0%, #EFF6EF 100%)' }}>
           <div style={{ fontSize:52, lineHeight:1, marginBottom:16 }}>{faseJardim.emoji}</div>
           <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:600, color:'var(--eden-green)', marginBottom:8 }}>
             {faseJardim.nome}
@@ -187,7 +189,7 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
         </div>
 
         {/* Broto IA */}
-        <div className="card" style={{ background:'var(--eden-bark)', border:'none', color:'#fff' }}>
+        <div className="card" style={{ background:'#2C1F14', border:'none', color:'#fff' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
             <div style={{ width:36, height:36, borderRadius:10, background:'rgba(255,255,255,.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>🤖</div>
             <div>
