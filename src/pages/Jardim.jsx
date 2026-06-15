@@ -34,6 +34,146 @@ function calcularSaude({ saldo, totalRec, pctReserva, totalMetas, metasBatidas, 
   return Math.min(100, Math.max(30, score))
 }
 
+
+// ── Jardim SVG animado ────────────────────────────────
+function JardimSVG({ score }) {
+  const T='#6B4A2A', L1='#4A7A3E', L2='#3D6A32', L3='#5A8A4A'
+  const FR='#D97C6C', FY='#C89A4A', FW='#F4EFE7', FP='#9B6B9E'
+  const GR='#4A6B3E', GR2='#3D5A33'
+  const BASE = 148
+
+  function op(v) { return Math.min(1,Math.max(0,v)).toFixed(2) }
+  function fade(s,from,to) { return op((s-from)/(to-from)) }
+
+  function tree(x,baseY,h,rTop,rMid,rBot,o,v=0) {
+    const cols=v===0?[L2,L1,L3]:v===1?[L1,L3,L2]:[L3,L2,L1]
+    return [
+      <rect key={`tr${x}`} x={x-3} y={baseY-h} width="6" height={h} fill={T} opacity={o} rx="3"/>,
+      <ellipse key={`te1${x}`} cx={x} cy={baseY-h} rx={rBot} ry={Math.round(rBot*0.75)} fill={cols[0]} opacity={o}/>,
+      <ellipse key={`te2${x}`} cx={x} cy={baseY-h-rBot*0.4} rx={rMid} ry={Math.round(rMid*0.75)} fill={cols[1]} opacity={o}/>,
+      <ellipse key={`te3${x}`} cx={x} cy={baseY-h-rBot*0.4-rMid*0.5} rx={rTop} ry={Math.round(rTop*0.75)} fill={cols[2]} opacity={o}/>,
+      <ellipse key={`ts${x}`} cx={x+6} cy={baseY+3} rx={rBot*0.9} ry="4" fill="rgba(0,0,0,0.12)" opacity={o}/>,
+    ]
+  }
+
+  function bush(x,y,r,o,col=L2) {
+    return [
+      <ellipse key={`b1${x}`} cx={x} cy={y} rx={r} ry={Math.round(r*0.65)} fill={col} opacity={o}/>,
+      <ellipse key={`b2${x}`} cx={x-r*0.3} cy={y-r*0.3} rx={r*0.7} ry={Math.round(r*0.5)} fill={L1} opacity={o}/>,
+    ]
+  }
+
+  function flower(x,y,o,col=FR,size=5) {
+    return [
+      <circle key={`fl1${x}${y}`} cx={x-size*0.8} cy={y} r={size*0.7} fill={col} opacity={o}/>,
+      <circle key={`fl2${x}${y}`} cx={x+size*0.8} cy={y} r={size*0.7} fill={col} opacity={o}/>,
+      <circle key={`fl3${x}${y}`} cx={x} cy={y-size*0.8} r={size*0.7} fill={col} opacity={o}/>,
+      <circle key={`fl4${x}${y}`} cx={x} cy={y+size*0.8} r={size*0.7} fill={col} opacity={o}/>,
+      <circle key={`fc${x}${y}`} cx={x} cy={y} r={size*0.6} fill={FY} opacity={o}/>,
+    ]
+  }
+
+  function butterfly(x,y,o,col=FR) {
+    return [
+      <ellipse key={`bf1${x}`} cx={x-7} cy={y} rx="8" ry="5" fill={col} opacity={o} transform={`rotate(-25 ${x-7} ${y})`}/>,
+      <ellipse key={`bf2${x}`} cx={x+7} cy={y} rx="8" ry="5" fill={col} opacity={o} transform={`rotate(25 ${x+7} ${y})`}/>,
+      <ellipse key={`bf3${x}`} cx={x-5} cy={y+4} rx="5" ry="3" fill={col} opacity={(parseFloat(o)*0.7).toFixed(2)} transform={`rotate(-15 ${x-5} ${y+4})`}/>,
+      <ellipse key={`bf4${x}`} cx={x+5} cy={y+4} rx="5" ry="3" fill={col} opacity={(parseFloat(o)*0.7).toFixed(2)} transform={`rotate(15 ${x+5} ${y+4})`}/>,
+      <rect key={`bb${x}`} x={x-1} y={y-6} width="2" height="12" fill={T} opacity={o} rx="1"/>,
+    ]
+  }
+
+  function bird(x,y,o) {
+    return [
+      <path key={`bd1${x}`} d={`M${x} ${y} Q${x-10} ${y-6} ${x-18} ${y-2}`} fill="none" stroke="#C89A4A" strokeWidth="1.5" opacity={o} strokeLinecap="round"/>,
+      <path key={`bd2${x}`} d={`M${x} ${y} Q${x+10} ${y-6} ${x+18} ${y-2}`} fill="none" stroke="#C89A4A" strokeWidth="1.5" opacity={o} strokeLinecap="round"/>,
+    ]
+  }
+
+  const b1=fade(score,30,41), b2=fade(score,41,57), b3=fade(score,57,72)
+  const b4=fade(score,72,87), b5=fade(score,87,100)
+  const bf2=fade(score,49,57), bf3=fade(score,63,72), bf4=fade(score,77,87)
+  const bf5=fade(score,91,100)
+  const starOp=(parseFloat(fade(score,80,87))*0.5).toFixed(2)
+
+  return (
+    <svg width="100%" viewBox="0 0 680 180" preserveAspectRatio="xMidYMax meet" style={{ display:'block' }}>
+      {/* Ground */}
+      <rect x="0" y={BASE} width="680" height="32" fill={GR}/>
+      <rect x="0" y={BASE+10} width="680" height="22" fill={GR2}/>
+      {[40,90,150,220,310,370,440,530,600,650].map(x => (
+        <path key={x} d={`M${x} ${BASE} Q${x-3} ${BASE-6} ${x} ${BASE-9} Q${x+3} ${BASE-6} ${x} ${BASE}`} fill={L2} opacity="0.6"/>
+      ))}
+
+      {/* Fase 1 — Broto */}
+      {parseFloat(b1)>0 && <>
+        <rect x="338" y={BASE-28} width="4" height="28" fill={T} opacity={b1} rx="2"/>
+        <ellipse cx="340" cy={BASE-30} rx="12" ry="9" fill={L1} opacity={b1}/>
+        <ellipse cx="332" cy={BASE-24} rx="9" ry="6" fill={L2} opacity={b1} transform={`rotate(-35 332 ${BASE-24})`}/>
+        <ellipse cx="348" cy={BASE-24} rx="9" ry="6" fill={L2} opacity={b1} transform={`rotate(35 348 ${BASE-24})`}/>
+        {flower(310, BASE-8, fade(score,36,41), FR, 4)}
+      </>}
+
+      {/* Fase 2 — Crescimento */}
+      {parseFloat(b2)>0 && <>
+        <rect x="338" y={BASE-55} width="4" height="55" fill={T} opacity={b2} rx="2"/>
+        <ellipse cx="340" cy={BASE-57} rx="22" ry="17" fill={L1} opacity={b2}/>
+        <ellipse cx="340" cy={BASE-68} rx="16" ry="13" fill={L3} opacity={b2}/>
+        {bush(150, BASE-12, 28, b2, L2)}
+        {bush(530, BASE-12, 28, b2, L2)}
+        {flower(145, BASE-24, bf2, FR, 5)}
+        {flower(535, BASE-24, bf2, FY, 5)}
+        {flower(370, BASE-8, bf2, FW, 4)}
+      </>}
+
+      {/* Fase 3 — Árvore */}
+      {parseFloat(b3)>0 && <>
+        {tree(340, BASE, 90, 18, 26, 34, b3, 0)}
+        {bush(200, BASE-8, 30, b3, L1)}
+        {bush(480, BASE-8, 30, b3, L3)}
+        {[[240,FR],[290,FY],[390,FR],[440,FW],[160,FP]].map(([x,c]) => flower(x, BASE-10, bf3, c, 5))}
+        {butterfly(420, BASE-45, bf3, FR)}
+      </>}
+
+      {/* Fase 4 — Jardim */}
+      {parseFloat(b4)>0 && <>
+        {tree(130, BASE, 72, 15, 22, 28, b4, 1)}
+        {tree(550, BASE, 72, 15, 22, 28, b4, 2)}
+        {[[75,FR],[95,FY],[105,FW],[580,FR],[600,FP],[615,FY],[220,FP],[250,FW],[430,FW],[460,FP]].map(([x,c]) => flower(x, BASE-10, bf4, c, 5))}
+        {butterfly(255, BASE-55, bf4, FY)}
+        {butterfly(480, BASE-40, bf4, FP)}
+        {[[60,20],[180,12],[490,15],[620,10]].map(([x,y]) => (
+          <circle key={`s${x}`} cx={x} cy={y} r="2" fill="#DFB86A" opacity={starOp}/>
+        ))}
+      </>}
+
+      {/* Fase 5 — Legado */}
+      {parseFloat(b5)>0 && <>
+        {tree(48, BASE, 58, 12, 17, 22, b5, 2)}
+        {tree(632, BASE, 58, 12, 17, 22, b5, 0)}
+        {tree(280, BASE, 35, 8, 11, 14, b5, 1)}
+        {tree(400, BASE, 35, 8, 11, 14, b5, 0)}
+        {bush(340, BASE-5, 15, b5, L3)}
+        {[[30,FR],[55,FY],[330,FW],[350,FR],[658,FP],[640,FY],[175,FW],[320,FP]].map(([x,c]) => flower(x, BASE-8, bf5, c, 4))}
+        {butterfly(100, BASE-50, bf5, FR)}
+        {butterfly(340, BASE-100, bf5, FY)}
+        {butterfly(570, BASE-55, bf5, FP)}
+        {bird(200, 25, bf5)}
+        {bird(440, 18, bf5)}
+        {bird(560, 32, bf5)}
+        <circle cx="610" cy="22" r="18" fill="#DFB86A" opacity={(parseFloat(bf5)*0.4).toFixed(2)}/>
+        <circle cx="619" cy="17" r="16" fill="#2D4A2E" opacity={(parseFloat(bf5)*0.4).toFixed(2)}/>
+        {[[40,14],[120,8],[260,5],[380,9],[500,6],[650,18],[80,28],[300,20],[450,25],[580,12]].map(([x,y]) => (
+          <circle key={`st${x}`} cx={x} cy={y} r="1.5" fill="#DFB86A" opacity={(parseFloat(bf5)*0.7).toFixed(2)}/>
+        ))}
+        {[[340,20],[325,35],[355,28]].map(([x,y]) => (
+          <path key={`sp${x}`} d={`M${x} ${y-4} L${x} ${y+4} M${x-4} ${y} L${x+4} ${y}`} stroke="#DFB86A" strokeWidth="1.5" opacity={(parseFloat(bf5)*0.6).toFixed(2)} strokeLinecap="round"/>
+        ))}
+      </>}
+    </svg>
+  )
+}
+
 export default function Jardim({ session, profile }) {
   const [dados, setDados] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -172,20 +312,22 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
       {/* ── VISUAL DO JARDIM ── */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:16, marginBottom:16 }}>
 
-        {/* Fase visual */}
-        <div className="card" style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'28px 20px', background:'linear-gradient(135deg, #F8F5EE 0%, #EFF6EF 100%)' }}>
-          <div style={{ fontSize:52, lineHeight:1, marginBottom:16 }}>{faseJardim.emoji}</div>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:600, color:'var(--eden-green)', marginBottom:8 }}>
-            {faseJardim.nome}
-          </div>
-          <div style={{ fontSize:13, color:'var(--secondary)', lineHeight:1.6, fontStyle:'italic' }}>
-            "{faseJardim.msg}"
-          </div>
-          {fase && (
-            <div style={{ marginTop:14, fontSize:11, color:'var(--eden-terra)', fontWeight:600 }}>
-              {fase.emoji} Fase {fase.nome}
+        {/* Fase visual — Jardim animado */}
+        <div style={{ borderRadius:14, overflow:'hidden', background:'linear-gradient(160deg, #3D5A3E 0%, #2D4A2E 100%)', position:'relative', minHeight:200 }}>
+          <div style={{ padding:'18px 20px 0', position:'relative', zIndex:2 }}>
+            <div style={{ display:'inline-block', background:'rgba(196,151,58,0.25)', color:'#DFB86A', fontSize:11, fontWeight:600, padding:'2px 10px', borderRadius:20, border:'0.5px solid rgba(196,151,58,0.4)', marginBottom:8 }}>
+              {faseJardim.emoji} {faseJardim.nome}
             </div>
-          )}
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:600, color:'#fff', lineHeight:1.3 }}>
+              "{faseJardim.msg}"
+            </div>
+            {fase && (
+              <div style={{ fontSize:11, color:'rgba(232,220,200,0.5)', marginTop:6 }}>
+                {fase.emoji} Fase financeira: {fase.nome}
+              </div>
+            )}
+          </div>
+          <JardimSVG score={dados.saude} />
         </div>
 
         {/* Broto IA */}
