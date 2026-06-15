@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import CartoesPag from './Cartoes.jsx'
-import ContasPag from './Contas.jsx'
+import { ConquistasRecentes } from '../components/Conquistas.jsx'
+import Notificacoes from './Notificacoes.jsx'
 
-export default function ContasPage({ session, profile }) {
-  const [aba, setAba] = useState('cartoes')
+export default function ConquistasPage({ session, profile }) {
+  const [aba, setAba] = useState('conquistas')
   return (
     <div>
       <div style={{ display:'flex', borderBottom:'0.5px solid var(--border)', marginBottom:20 }}>
-        {[['cartoes','💳 Cartões'],['contas','📋 Contas Fixas']].map(([id,label]) => (
+        {[['conquistas','🍎 Conquistas'],['notificacoes','🔔 Notificações']].map(([id,label]) => (
           <button key={id} onClick={() => setAba(id)}
             style={{ padding:'9px 16px', border:'none', background:'none', cursor:'pointer', fontFamily:'inherit', fontSize:13,
               fontWeight: aba===id?600:400, color: aba===id?'var(--primary)':'var(--secondary)',
@@ -16,8 +16,8 @@ export default function ContasPage({ session, profile }) {
           </button>
         ))}
       </div>
-      {aba === 'cartoes' && <CartoesPag session={session} profile={profile} />}
-      {aba === 'contas'  && <ContasPag  session={session} profile={profile} />}
+      {aba === 'conquistas'   && <ConquistasRecentes session={session} profile={profile} />}
+      {aba === 'notificacoes' && <Notificacoes session={session} profile={profile} />}
     </div>
   )
 }
