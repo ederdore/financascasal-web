@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, MESES_CURTO } from '../supabase.js'
 
-const ADMIN_EMAILS = ['ederdore@gmail.com']
+const ADMIN_EMAILS = ['dore09@gmail.com']
 
 const PLANO_CORES = {
   free:    { bg: '#F1EFE8', color: '#444441', label: 'Free' },
