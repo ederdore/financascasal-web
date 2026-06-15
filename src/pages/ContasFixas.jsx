@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import CartoesPag from './Cartoes.jsx'
-import ContasPag from './Contas.jsx'
+import ContasFixas from './ContasFixas.jsx'
 
-export default function ContasPage({ session, profile }) {
+export default function Contas({ session, profile }) {
   const [aba, setAba] = useState('cartoes')
   return (
     <div>
@@ -17,7 +17,7 @@ export default function ContasPage({ session, profile }) {
         ))}
       </div>
       {aba === 'cartoes' && <CartoesPag session={session} profile={profile} />}
-      {aba === 'contas'  && <ContasPag  session={session} profile={profile} />}
+      {aba === 'contas'  && <ContasFixas session={session} profile={profile} />}
     </div>
   )
 }
