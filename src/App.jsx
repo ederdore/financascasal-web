@@ -21,6 +21,7 @@ import { useFaseAtual, FaseBadge } from './components/FasesFinanceiras.jsx'
 import Onboarding from './pages/Onboarding.jsx'
 import { TrialBanner } from './components/StripeUpgrade.jsx'
 import { useMaturidadeIA } from './components/IAMaturidade.jsx'
+import { verificarAtividade, registrarEvento, EVENTOS } from './components/Eventos.js'
 
 const ICONS = {
   visao: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -122,6 +123,14 @@ function SidebarFaseBadge({ session, profile }) {
 function AutoLancarRunner({ session, profile }) {
   useAutoLancarRecorrencias(session, profile)
   const { novasConquistas, dispensar } = useConquistas(session, profile)
+
+  // Verifica marcos de atividade em background
+  useEffect(() => {
+    if (!session?.user?.id || !profile?.casal_code) return
+    const t = setTimeout(() => verificarAtividade(session.user.id, profile.casal_code), 5000)
+    return () => clearTimeout(t)
+  }, [session?.user?.id])
+
   return <CelebracaoModal conquistas={novasConquistas} onClose={dispensar} />
 }
 

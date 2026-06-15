@@ -1,6 +1,7 @@
 import FaturaDetalhe from './FaturaDetalhe.jsx'
 import { useState, useEffect } from 'react'
 import { supabase, fmt, MESES } from '../supabase.js'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 
 export default function Cartoes({ session, profile }) {
   const [cartoes, setCartoes] = useState([])
@@ -73,6 +74,7 @@ export default function Cartoes({ session, profile }) {
     try {
       if (edit) await supabase.from('cartoes').update(payload).eq('id', edit.id)
       else await supabase.from('cartoes').insert(payload)
+      await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRO_CARTAO)
       setModal(false); loadData()
     } catch (e) { alert(e.message) } finally { setSaving(false) }
   }

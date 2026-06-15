@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 import { supabase } from '../supabase.js'
 
 const OBJETIVOS = [
@@ -71,6 +72,7 @@ export default function Configuracoes({ session, profile, onProfileUpdate }) {
       const { error } = await supabase.from('profiles').update({ casal_code: code }).eq('id', session.user.id)
       if (error) throw error
       setCasalCode(code); setNovoCasalCode('')
+      await registrarEvento(session.user.id, code, EVENTOS.PARCEIRO_CONVIDADO)
       showMsg('✅ Código do casal atualizado!')
       if (onProfileUpdate) onProfileUpdate()
     } catch (e) { showMsg('Erro: ' + e.message, 'erro') }

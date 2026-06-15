@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, MESES_CURTO } from '../supabase.js'
 
-const ADMIN_EMAILS = ['dore09@gmail.com']
+const ADMIN_EMAILS = ['ederdore@gmail.com']
 
 const PLANO_CORES = {
   free:    { bg: '#F1EFE8', color: '#444441', label: 'Free' },
@@ -21,6 +21,7 @@ export default function Admin({ session }) {
   const [assinaturas, setAssinaturas] = useState([])
   const [convites, setConvites] = useState([])
   const [custos, setCustos] = useState([])
+  const [eventos, setEventos] = useState([])
   const [receitaMensal, setReceitaMensal] = useState([])
   const [modalCusto, setModalCusto] = useState(false)
   const [editCusto, setEditCusto] = useState(null)
@@ -58,6 +59,14 @@ export default function Admin({ session }) {
       setConvites(convData.data || [])
 
       // Carrega custos e receita mensal
+      // Carrega eventos de produto
+      const { data: evData } = await supabase
+        .from('eventos_usuario')
+        .select('evento, user_id, created_at')
+        .order('created_at', { ascending: false })
+        .limit(500)
+      setEventos(evData || [])
+
       const [custosData, receitaData] = await Promise.all([
         supabase.from('custos_infra').select('*').eq('ativo', true).order('nome'),
         supabase.from('receita_mensal').select('*').order('ano', { ascending: false }).order('mes', { ascending: false }).limit(12),
@@ -312,7 +321,7 @@ export default function Admin({ session }) {
 
       {/* Abas */}
       <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)', marginBottom: 20 }}>
-        {[['visao','📊 Visão geral'],['assinaturas','💳 Assinaturas'],['financeiro','💰 Financeiro'],['convites','✉️ Convites']].map(([id, label]) => (
+        {[['visao','📊 Visão geral'],['assinaturas','💳 Assinaturas'],['financeiro','💰 Financeiro'],['eventos','📈 Eventos'],['convites','✉️ Convites']].map(([id, label]) => (
           <button key={id} onClick={() => setAba(id)}
             style={{ padding: '9px 16px', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: aba === id ? 600 : 400, color: aba === id ? 'var(--primary)' : 'var(--secondary)',
@@ -698,6 +707,85 @@ export default function Admin({ session }) {
             </div>
           )
         })()}
+
+
+      {/* ── EVENTOS ── */}
+      {aba === 'eventos' && (() => {
+        const LISTA = [
+          { id:'conta_criada',       label:'Conta criada',              emoji:'🌱' },
+          { id:'parceiro_convidado', label:'Parceiro convidado',        emoji:'👫' },
+          { id:'primeira_receita',   label:'Primeira receita',          emoji:'💰' },
+          { id:'primeira_despesa',   label:'Primeira despesa',          emoji:'💸' },
+          { id:'primeiro_cartao',    label:'Primeiro cartão',           emoji:'💳' },
+          { id:'primeira_meta',      label:'Primeira meta',             emoji:'🎯' },
+          { id:'primeira_reserva',   label:'Primeira reserva',          emoji:'🛡' },
+          { id:'primeira_ia',        label:'Primeira interação com IA', emoji:'🤖' },
+          { id:'primeiro_telegram',  label:'Primeiro registro Telegram',emoji:'✉️' },
+          { id:'7_dias_ativo',       label:'7 dias ativo',              emoji:'📅' },
+          { id:'30_dias_ativo',      label:'30 dias ativo',             emoji:'🏆' },
+        ]
+        const totalUsers = new Set(assinaturas.map(a => a.user_id)).size || 1
+
+        return (
+          <div>
+            {/* Funil de ativação */}
+            <div className="card" style={{ marginBottom:16 }}>
+              <div className="card-title" style={{ marginBottom:16 }}>📈 Funil de ativação</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {LISTA.map(ev => {
+                  const count = new Set(eventos.filter(e => e.evento === ev.id).map(e => e.user_id)).size
+                  const pct   = Math.round((count / totalUsers) * 100)
+                  return (
+                    <div key={ev.id}>
+                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:4 }}>
+                        <span>{ev.emoji} {ev.label}</span>
+                        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+                          <span style={{ color:'var(--secondary)', fontSize:12 }}>{count} usuário(s)</span>
+                          <span style={{ fontWeight:600, minWidth:36, textAlign:'right' }}>{pct}%</span>
+                        </div>
+                      </div>
+                      <div style={{ height:5, background:'var(--border)', borderRadius:3, overflow:'hidden' }}>
+                        <div style={{ height:'100%', width:`${pct}%`, borderRadius:3, transition:'width .4s',
+                          background: pct >= 50 ? 'var(--green)' : pct >= 20 ? 'var(--yellow)' : 'var(--red)' }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div style={{ fontSize:11, color:'var(--secondary)', marginTop:12 }}>
+                Base: {totalUsers} usuário(s) cadastrado(s)
+              </div>
+            </div>
+
+            {/* Últimos eventos */}
+            <div className="card">
+              <div className="card-title" style={{ marginBottom:14 }}>⏱ Últimos eventos</div>
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>Evento</th><th>Usuário</th><th>Data</th></tr></thead>
+                  <tbody>
+                    {eventos.slice(0,20).map(ev => {
+                      const def = LISTA.find(l => l.id === ev.evento)
+                      return (
+                        <tr key={ev.id}>
+                          <td>{def?.emoji || '📌'} {def?.label || ev.evento}</td>
+                          <td style={{ fontSize:11, color:'var(--secondary)', fontFamily:'monospace' }}>{ev.user_id?.slice(0,8)}...</td>
+                          <td style={{ fontSize:12, color:'var(--secondary)' }}>
+                            {new Date(ev.created_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                    {eventos.length === 0 && (
+                      <tr><td colSpan={3} style={{ textAlign:'center', color:'var(--secondary)', padding:24 }}>Nenhum evento ainda</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
 
       {/* ── CONVITES ── */}

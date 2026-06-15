@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, toBRL } from '../supabase.js'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 
 export default function Reserva({ session, profile }) {
   const [reserva, setReserva] = useState({ meta: 30000, atual: 0, atual_usd: 0, meta_usd: 0, rende_cdi: false, pct_cdi: 100, taxa_cdi_mensal: 0.92 })
@@ -58,6 +59,7 @@ export default function Reserva({ session, profile }) {
     try {
       if (reserva.id) await supabase.from('reserva').update({ meta: metaIdeal }).eq('id', reserva.id)
       else await supabase.from('reserva').insert({ user_id: session.user.id, meta: metaIdeal, atual: 0 })
+      await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRA_RESERVA)
       loadData()
       alert(`✅ Meta atualizada para ${fmt(metaIdeal)} (${mesesReserva} meses)`)
     } catch (e) { alert(e.message) } finally { setSaving(false) }

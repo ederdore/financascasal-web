@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase.js'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 
 const OBJETIVOS = [
   {
@@ -193,6 +194,7 @@ export default function Onboarding({ session, onComplete }) {
         celebrado: false,
       }).select()
 
+      await registrarEvento(uid, cc, EVENTOS.CONTA_CRIADA, { objetivo })
       onComplete()
     } catch (e) {
       alert('Erro: ' + e.message)

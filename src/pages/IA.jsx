@@ -3,6 +3,7 @@ import { supabase, fmt } from '../supabase.js'
 import { OBJETIVOS, buildPromptAnalise, buildPromptNotificacoes, chamarIA, buscarMemoriaPerguntas, formatarMemoria } from '../components/IAEngine.js'
 import { useComparativoFase, ComparativoFase } from '../components/ComparativoFases.jsx'
 import { carregarMemoria, atualizarMemoria, formatarMemoriaIA, gerarAlertaProativo } from '../components/IAMemoria.js'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 import { useFaseAtual } from '../components/FasesFinanceiras.jsx'
 import { CardMaturidadeIA } from '../components/IAMaturidade.jsx'
 
@@ -95,6 +96,7 @@ export default function IA({ session, profile }) {
       const prompt = buildPromptAnalise({ objetivo, dados, memoria })
       const plano = profile.plano || 'free'
       const resultado = await chamarIA(prompt, plano)
+      await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRA_IA)
       setAnalise(resultado)
 
       // Atualiza memória para usuários premium

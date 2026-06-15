@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase, fmt, CATS_DESP_PADRAO, CAT_ICONS, MESES, MESES_CURTO, carregarCategorias } from '../supabase.js'
 import { useAIToast, AIToast } from '../components/AIToast.jsx'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 
 const COLORS = ['#1D9E75','#178DD1','#EF9F27','#E24B4A','#7F77DD','#2E7D32','#993556','#FF6B35','#4ECDC4']
 
@@ -110,6 +111,8 @@ export default function Despesas({ session, profile }) {
         if (edit) await supabase.from('despesas').update(payload).eq('id', edit.id)
         else await supabase.from('despesas').insert(payload)
       }
+      // Logo após o insert de despesa funcionar
+        await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRA_DESPESA)
       setModal(false); loadData()
 
       // Sugestão da IA após lançamento

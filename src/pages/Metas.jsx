@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, CATS_META } from '../supabase.js'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 
 export default function Metas({ session, profile }) {
   const [metas, setMetas] = useState([])
@@ -79,6 +80,7 @@ export default function Metas({ session, profile }) {
         result = await supabase.from('metas').insert(payload)
       }
       if (result.error) throw result.error
+      await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRA_META)
       setModal(false); loadData()
     } catch (e) {
       console.error('Erro metas:', e)

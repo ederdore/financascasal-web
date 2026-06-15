@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, TIPOS_REC, MESES } from '../supabase.js'
 import { useAIToast, AIToast } from '../components/AIToast.jsx'
+import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 
 export default function Receitas({ session, profile }) {
   const [receitas, setReceitas] = useState([])
@@ -80,6 +81,7 @@ export default function Receitas({ session, profile }) {
           }
         }
       }
+      await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRA_RECEITA)
       setModal(false); loadData()
 
       // Sugestão da IA após receita
@@ -125,7 +127,7 @@ export default function Receitas({ session, profile }) {
           mes: now.getMonth(), ano: now.getFullYear(),
         }))
       }
-    }
+    }await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRA_RECEITA)
     alert(`✅ ${fmt(r.valor)} lançado!`); loadData()
     sugerirIA({ tipo: 'receita', nome: r.nome, valor: r.valor, categoria: r.tipo, quem: r.quem, contexto: { pctReserva: profile.pct_reserva || 5 } })
   }
