@@ -239,7 +239,7 @@ export default function App() {
           {SECTIONS.map(sec => {
             const tabsDaSec = TABS.filter(t => t.section === sec.id)
             // Oculta admin se não for admin
-            const visíveis = tabsDaSec.filter(t => t.id !== 'admin' || profile.email === 'dore09@gmail.com')
+            const visíveis = tabsDaSec.filter(t => t.id !== 'admin' || session?.user?.email === 'dore09@gmail.com')
             if (!visíveis.length) return null
             return (
               <div key={sec.id}>
