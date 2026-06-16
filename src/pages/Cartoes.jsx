@@ -69,6 +69,57 @@ function GraficoCategorias({ cartaoId, casalCode }) {
   )
 }
 
+
+// ── Mini dash de compromissos no card ─────────────────
+function MiniCompromissos({ cartaoId, casalCode, limite }) {
+  const [dados, setDados] = useState(null)
+
+  useEffect(() => {
+    async function carregar() {
+      const [p, r] = await Promise.all([
+        supabase.from('parcelas').select('valor_parcela,total_parcelas,parcela_atual').eq('cartao_id', cartaoId).eq('casal_code', casalCode),
+        supabase.from('recorrencias_cartao').select('valor').eq('cartao_id', cartaoId).eq('casal_code', casalCode).eq('ativa', true),
+      ])
+      const totalParcs = (p.data||[]).filter(x => x.total_parcelas > x.parcela_atual).reduce((s,x) => s+x.valor_parcela, 0)
+      const totalRecs  = (r.data||[]).reduce((s,x) => s+x.valor, 0)
+      const total = totalParcs + totalRecs
+      const pct   = limite > 0 ? Math.round((total/limite)*100) : 0
+      setDados({ totalParcs, totalRecs, total, pct, nParcs: (p.data||[]).filter(x=>x.total_parcelas>x.parcela_atual).length, nRecs: (r.data||[]).length })
+    }
+    carregar()
+  }, [cartaoId])
+
+  if (!dados || dados.total === 0) return null
+
+  return (
+    <div style={{ borderTop:'0.5px solid var(--border)', padding:'10px 0 4px' }}>
+      <div style={{ fontSize:11, fontWeight:600, color:'var(--secondary)', textTransform:'uppercase', letterSpacing:0.5, marginBottom:8 }}>
+        Compromissos mensais
+      </div>
+      <div style={{ display:'flex', gap:8, marginBottom:6 }}>
+        {dados.totalParcs > 0 && (
+          <div style={{ flex:1, background:'rgba(239,159,39,0.1)', borderRadius:8, padding:'6px 10px' }}>
+            <div style={{ fontSize:10, color:'var(--yellow)', fontWeight:600, marginBottom:2 }}>📦 Parcelas ({dados.nParcs})</div>
+            <div style={{ fontSize:13, fontWeight:700, color:'var(--yellow)' }}>{fmt(dados.totalParcs)}/mês</div>
+          </div>
+        )}
+        {dados.totalRecs > 0 && (
+          <div style={{ flex:1, background:'rgba(23,141,209,0.1)', borderRadius:8, padding:'6px 10px' }}>
+            <div style={{ fontSize:10, color:'var(--blue)', fontWeight:600, marginBottom:2 }}>📺 Assinaturas ({dados.nRecs})</div>
+            <div style={{ fontSize:13, fontWeight:700, color:'var(--blue)' }}>{fmt(dados.totalRecs)}/mês</div>
+          </div>
+        )}
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', fontSize:12 }}>
+        <span style={{ color:'var(--secondary)' }}>Total comprometido</span>
+        <span style={{ fontWeight:700, color: dados.pct>80?'var(--red)':dados.pct>50?'var(--yellow)':'var(--primary)' }}>
+          {fmt(dados.total)} ({dados.pct}% do limite)
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function Cartoes({ session, profile }) {
   const [cartoes, setCartoes] = useState([])
   const [historico, setHistorico] = useState([])
@@ -299,6 +350,11 @@ export default function Cartoes({ session, profile }) {
                   🏦 Pagamento via {bancoPag.banco}
                 </div>
               )}
+
+              {/* Compromissos futuros */}
+              <div style={{ padding:'0 16px' }}>
+                <MiniCompromissos cartaoId={c.id} casalCode={profile.casal_code} limite={c.limite} />
+              </div>
 
               {/* Ações */}
               <div style={{ padding:'10px 16px', display:'flex', gap:6, borderTop:'0.5px solid var(--border)' }}>
