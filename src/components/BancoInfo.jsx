@@ -1,98 +1,74 @@
-// BancoInfo.js — logos e bandeiras dos bancos
-// Usado em Bancos.jsx, Jardim.jsx e qualquer componente que exiba bancos
+// BancoInfo.jsx — identidade visual dos bancos com cores oficiais
+// Usa iniciais estilizadas com cores reais das marcas
 
 export const BANCO_INFO = {
-  // ── Bancos ────────────────────────────────────────
   'Nubank': {
-    cor: '#820AD1',
-    corTexto: '#fff',
-    logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="12" fill="#820AD1"/>
-      <path d="M10 26V14l14 12V14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
-    emoji: '💜',
+    cor: '#820AD1', corTexto: '#fff', inicial: 'N',
+    fonte: 'bold', radius: 12,
+    descricao: 'Banco digital roxo',
   },
   'Inter': {
-    cor: '#FF7A00',
-    corTexto: '#fff',
-    logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="12" fill="#FF7A00"/>
-      <circle cx="20" cy="20" r="8" stroke="white" stroke-width="3"/>
-      <circle cx="20" cy="20" r="2" fill="white"/>
-    </svg>`,
-    emoji: '🟠',
+    cor: '#FF7A00', corTexto: '#fff', inicial: 'i',
+    fonte: '500', radius: 12,
+    descricao: 'Banco Inter laranja',
   },
   'Cartão Inter': {
-    cor: '#FF7A00',
-    corTexto: '#fff',
-    logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="12" fill="#FF7A00"/>
-      <circle cx="20" cy="20" r="8" stroke="white" stroke-width="3"/>
-      <circle cx="20" cy="20" r="2" fill="white"/>
-    </svg>`,
-    emoji: '🟠',
+    cor: '#FF7A00', corTexto: '#fff', inicial: 'i',
+    fonte: '500', radius: 12,
   },
   'XP': {
-    cor: '#000000',
-    corTexto: '#fff',
-    logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="12" fill="#111"/>
-      <text x="20" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="Arial">XP</text>
-    </svg>`,
-    emoji: '⬛',
+    cor: '#000000', corTexto: '#fff', inicial: 'XP',
+    fonte: 'bold', radius: 8,
+    descricao: 'XP Investimentos preto',
   },
   'Nomad': {
-    cor: '#00B4D8',
-    corTexto: '#fff',
-    logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="12" fill="#00B4D8"/>
-      <path d="M10 28 Q20 12 30 28" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <circle cx="20" cy="16" r="4" fill="white"/>
-    </svg>`,
-    emoji: '🔵',
+    cor: '#1A1A2E', corTexto: '#00D4AA', inicial: 'N',
+    fonte: 'bold', radius: 12,
+    descricao: 'Nomad escuro com verde água',
   },
   'Wise': {
-    cor: '#00B9A0',
-    corTexto: '#fff',
-    logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="12" fill="#00B9A0"/>
-      <path d="M8 14l6 12 4-8 4 8 6-12" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
-    emoji: '🟢',
+    cor: '#00B9A0', corTexto: '#fff', inicial: 'W',
+    fonte: 'bold', radius: 12,
+    descricao: 'Wise verde água',
   },
   'Itaú': {
-    cor: '#EC7000',
-    corTexto: '#fff',
-    logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="12" fill="#EC7000"/>
-      <text x="20" y="26" text-anchor="middle" fill="white" font-size="11" font-weight="bold" font-family="Arial">itaú</text>
-    </svg>`,
-    emoji: '🟡',
+    cor: '#EC7000', corTexto: '#fff', inicial: 'itaú',
+    fonte: '600', radius: 12,
+    descricao: 'Itaú laranja',
+  },
+  'C6': {
+    cor: '#242424', corTexto: '#F5C518', inicial: 'C6',
+    fonte: 'bold', radius: 12,
+    descricao: 'C6 Bank preto e amarelo',
+  },
+  'Bradesco': {
+    cor: '#CC092F', corTexto: '#fff', inicial: 'B',
+    fonte: 'bold', radius: 12,
+    descricao: 'Bradesco vermelho',
+  },
+  'Santander': {
+    cor: '#EC0000', corTexto: '#fff', inicial: 'S',
+    fonte: 'bold', radius: 12,
+    descricao: 'Santander vermelho',
+  },
+  'BTG': {
+    cor: '#002060', corTexto: '#fff', inicial: 'BTG',
+    fonte: 'bold', radius: 8,
+    descricao: 'BTG Pactual azul escuro',
+  },
+  'Revolut': {
+    cor: '#0666EB', corTexto: '#fff', inicial: 'R',
+    fonte: 'bold', radius: 12,
+    descricao: 'Revolut azul',
   },
 }
 
 export const MOEDA_INFO = {
-  'BRL': {
-    bandeira: '🇧🇷',
-    nome: 'Real Brasileiro',
-    simbolo: 'R$',
-    cor: '#009C3B',
-  },
-  'USD': {
-    bandeira: '🇺🇸',
-    nome: 'Dólar Americano',
-    simbolo: 'US$',
-    cor: '#3C3B6E',
-  },
-  'EUR': {
-    bandeira: '🇪🇺',
-    nome: 'Euro',
-    simbolo: '€',
-    cor: '#003399',
-  },
+  'BRL': { bandeira: '🇧🇷', nome: 'Real Brasileiro',   simbolo: 'R$',  cor: '#009C3B' },
+  'USD': { bandeira: '🇺🇸', nome: 'Dólar Americano',   simbolo: 'US$', cor: '#3C3B6E' },
+  'EUR': { bandeira: '🇪🇺', nome: 'Euro',               simbolo: '€',   cor: '#003399' },
 }
 
-// Retorna info do banco com fallback
 export function getBancoInfo(nomeBanco) {
   if (!nomeBanco) return null
   const key = Object.keys(BANCO_INFO).find(k =>
@@ -101,29 +77,53 @@ export function getBancoInfo(nomeBanco) {
   return key ? BANCO_INFO[key] : null
 }
 
-// Retorna info da moeda com fallback BRL
 export function getMoedaInfo(moeda) {
   return MOEDA_INFO[moeda] || MOEDA_INFO['BRL']
 }
 
-// Componente logo do banco (retorna JSX string para uso inline)
 export function BancoLogo({ nome, size = 36 }) {
   const info = getBancoInfo(nome)
+  const radius = size * 0.3
+
   if (!info) {
     return (
       <div style={{
-        width: size, height: size, borderRadius: size * 0.3,
+        width: size, height: size, borderRadius: radius,
         background: '#E8DCC8', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', fontSize: size * 0.4, flexShrink: 0,
+        justifyContent: 'center', fontSize: size * 0.38, flexShrink: 0,
+        fontWeight: 'bold', color: '#7A7060',
       }}>
-        🏦
+        {nome?.charAt(0)?.toUpperCase() || '🏦'}
       </div>
     )
   }
+
+  const fontSize = info.inicial.length > 2
+    ? size * 0.25
+    : info.inicial.length === 2
+    ? size * 0.3
+    : size * 0.4
+
   return (
-    <div
-      style={{ width: size, height: size, borderRadius: size * 0.3, flexShrink: 0, overflow: 'hidden' }}
-      dangerouslySetInnerHTML={{ __html: info.logo }}
-    />
+    <div style={{
+      width: size, height: size,
+      borderRadius: info.radius || radius,
+      background: info.cor,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0,
+      boxShadow: `0 2px 8px ${info.cor}40`,
+    }}>
+      <span style={{
+        color: info.corTexto,
+        fontSize: fontSize,
+        fontWeight: info.fonte || 'bold',
+        fontFamily: nome === 'Itaú' ? 'Georgia, serif' : "'Inter', sans-serif",
+        letterSpacing: info.inicial.length > 1 ? '-0.5px' : '0',
+        lineHeight: 1,
+        userSelect: 'none',
+      }}>
+        {info.inicial}
+      </span>
+    </div>
   )
 }
