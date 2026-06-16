@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, toBRL, iconeBanco, CAT_ICONS } from '../supabase.js'
-import { getBancoInfo, getMoedaInfo, BancoLogo } from '../components/BancoInfo.js'
+import { getBancoInfo, getMoedaInfo, BancoLogo } from '../components/BancoInfo.jsx'
 
 const TIPOS = [['corrente','Corrente'],['poupanca','Poupança'],['investimento','Investimento']]
 const MOEDAS = [['BRL','🇧🇷 Real (BRL)'],['USD','🇺🇸 Dólar (USD)'],['EUR','🇪🇺 Euro (EUR)']]
