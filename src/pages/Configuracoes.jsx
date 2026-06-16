@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 import { supabase } from '../supabase.js'
 
 const OBJETIVOS = [
@@ -12,6 +11,11 @@ const OBJETIVOS = [
 
 export default function Configuracoes({ session, profile, onProfileUpdate }) {
   const [aba, setAba] = useState('perfil')
+  // Notificações bot
+  const [notifSemanal,   setNotifSemanal]   = useState(profile.notif_semanal   !== false)
+  const [notifDia,       setNotifDia]       = useState(profile.notif_dia       !== false)
+  const [notifOnboarding,setNotifOnboarding]= useState(profile.notif_onboarding !== false)
+  const [savingNotif,    setSavingNotif]    = useState(false)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState({ texto: '', tipo: '' })
   const [parceiro, setParceiro] = useState(null)
@@ -72,7 +76,6 @@ export default function Configuracoes({ session, profile, onProfileUpdate }) {
       const { error } = await supabase.from('profiles').update({ casal_code: code }).eq('id', session.user.id)
       if (error) throw error
       setCasalCode(code); setNovoCasalCode('')
-      await registrarEvento(session.user.id, code, EVENTOS.PARCEIRO_CONVIDADO)
       showMsg('✅ Código do casal atualizado!')
       if (onProfileUpdate) onProfileUpdate()
     } catch (e) { showMsg('Erro: ' + e.message, 'erro') }
@@ -160,7 +163,21 @@ export default function Configuracoes({ session, profile, onProfileUpdate }) {
     ['casal', '💑 Casal'],
     ['seguranca', '🔒 Segurança'],
     ['lgpd', '🛡 Privacidade'],
+    ['notificacoes', '🔔 Notificações'],
   ]
+
+  async function salvarNotificacoes() {
+    setSavingNotif(true)
+    try {
+      await supabase.from('profiles').update({
+        notif_semanal:   notifSemanal,
+        notif_dia:       notifDia,
+        notif_onboarding: notifOnboarding,
+      }).eq('id', session.user.id)
+      showMsg('✅ Preferências salvas!')
+    } catch(e) { showMsg('Erro: '+e.message, 'erro') }
+    finally { setSavingNotif(false) }
+  }
 
   return (
     <div>
@@ -388,6 +405,40 @@ export default function Configuracoes({ session, profile, onProfileUpdate }) {
           </div>
         </div>
       )}
+      {/* ── NOTIFICAÇÕES ── */}
+      {aba === 'notificacoes' && (
+        <div className="card">
+          <div style={{ fontWeight:600, marginBottom:4, fontSize:15 }}>🔔 Notificações do Bot</div>
+          <div style={{ fontSize:13, color:'var(--secondary)', marginBottom:20 }}>
+            Controle quais mensagens o Broto envia no Telegram
+          </div>
+
+          {[
+            ['notif_semanal', notifSemanal, setNotifSemanal, '📊 Saúde semanal', 'Toda segunda-feira: resumo do jardim, top 3 gastos e dica da IA'],
+            ['notif_dia',     notifDia,     setNotifDia,     '🌿 Dia sem gastos', 'Aviso entre 21h-23h quando o dia foi econômico ou sem gastos'],
+            ['notif_onboarding', notifOnboarding, setNotifOnboarding, '🌱 Dica de boas-vindas', 'Follow-up 24h após vincular se ainda não registrou gastos'],
+          ].map(([key, val, setter, titulo, desc]) => (
+            <div key={key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 0', borderBottom:'0.5px solid var(--border)' }}>
+              <div>
+                <div style={{ fontWeight:500, fontSize:14 }}>{titulo}</div>
+                <div style={{ fontSize:12, color:'var(--secondary)', marginTop:3 }}>{desc}</div>
+              </div>
+              <label style={{ display:'flex', alignItems:'center', cursor:'pointer', flexShrink:0, marginLeft:16 }}>
+                <div style={{ position:'relative', width:44, height:24 }} onClick={() => setter(!val)}>
+                  <div style={{ position:'absolute', inset:0, borderRadius:12, background:val?'var(--eden-green)':'var(--border)', transition:'background .2s' }}/>
+                  <div style={{ position:'absolute', top:3, left:val?22:3, width:18, height:18, borderRadius:9, background:'#fff', transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' }}/>
+                </div>
+              </label>
+            </div>
+          ))}
+
+          <button className="btn btn-primary" style={{ marginTop:20, width:'100%', justifyContent:'center' }}
+            onClick={salvarNotificacoes} disabled={savingNotif}>
+            {savingNotif ? 'Salvando...' : '✅ Salvar preferências'}
+          </button>
+        </div>
+      )}
+
     </div>
   )
 }
