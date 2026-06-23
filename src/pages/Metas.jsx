@@ -205,7 +205,7 @@ export default function Metas({ session, profile }) {
                     {m.descricao && ` · ${m.descricao}`}
                   </div>
                   <div className="row" style={{ gap: 6 }}>
-                    <button className="btn btn-green btn-sm" onClick={() => { setMetaAporte(m); setAporteValor(''); setAporteQuem(profile.papel); setAporteObs(''); setModalAporte(true) }}>💰 Aportar</button>
+                    <button className="btn btn-sm" style={{ background:'#1D9E75', color:'#fff' }} onClick={() => { setMetaAporte(m); setAporteValor(''); setAporteQuem(profile.papel); setAporteObs(''); setModalAporte(true) }}>💰 Aportar</button>
                     <button className="btn btn-outline btn-sm" onClick={() => openModal(m)}>✏️</button>
                     <button className="btn btn-sm" style={{ background: '#FCEBEB', color: 'var(--red)' }} onClick={() => excluir(m.id)}>🗑️</button>
                   </div>
@@ -341,7 +341,7 @@ export default function Metas({ session, profile }) {
               )}
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={() => setModalAporte(false)}>Cancelar</button>
-                <button type="submit" className="btn btn-green" disabled={saving}>{saving ? 'Salvando...' : 'Confirmar aporte'}</button>
+                <button type="submit" className="btn" style={{ background:'#1D9E75', color:'#fff' }} disabled={saving}>{saving ? 'Salvando...' : 'Confirmar aporte'}</button>
               </div>
             </form>
           </div>
