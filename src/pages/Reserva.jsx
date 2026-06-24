@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { supabase, fmt, toBRL } from '../supabase.js'
-import { registrarEvento, EVENTOS } from '../components/Eventos.js'
 
 export default function Reserva({ session, profile }) {
   const [reserva, setReserva] = useState({ meta: 30000, atual: 0, atual_usd: 0, meta_usd: 0, rende_cdi: false, pct_cdi: 100, taxa_cdi_mensal: 0.92 })
@@ -12,6 +11,10 @@ export default function Reserva({ session, profile }) {
   const [modalMeta, setModalMeta] = useState(false)
   const [modalCfg, setModalCfg] = useState(false)
   const [modalRetirada, setModalRetirada] = useState(false)
+  const [modalDeposito, setModalDeposito] = useState(false)
+  const [depValor, setDepValor] = useState('')
+  const [depBancoId, setDepBancoId] = useState('')
+  const [depMoeda, setDepMoeda] = useState('BRL')
   const [novaMeta, setNovaMeta] = useState('')
   const [resCdiAtivo, setResCdiAtivo] = useState(false)
   const [resPctCdi, setResPctCdi] = useState('100')
@@ -59,7 +62,6 @@ export default function Reserva({ session, profile }) {
     try {
       if (reserva.id) await supabase.from('reserva').update({ meta: metaIdeal }).eq('id', reserva.id)
       else await supabase.from('reserva').insert({ user_id: session.user.id, meta: metaIdeal, atual: 0 })
-      await registrarEvento(session.user.id, profile.casal_code, EVENTOS.PRIMEIRA_RESERVA)
       loadData()
       alert(`✅ Meta atualizada para ${fmt(metaIdeal)} (${mesesReserva} meses)`)
     } catch (e) { alert(e.message) } finally { setSaving(false) }
@@ -90,6 +92,57 @@ export default function Reserva({ session, profile }) {
       else await supabase.from('reserva').insert({ user_id: session.user.id, meta: 30000, atual: 0, ...payload })
       setModalCfg(false); loadData()
     } catch (e) { alert(e.message) } finally { setSaving(false) }
+  }
+
+  async function salvarDeposito(e) {
+    e.preventDefault()
+    const val = parseFloat(depValor) || 0
+    if (val <= 0) { alert('Informe o valor'); return }
+    setSaving(true)
+    try {
+      const novoAtual = depMoeda === 'USD'
+        ? (reserva.atual_usd || 0) + val
+        : (reserva.atual || 0) + val
+
+      if (depMoeda === 'USD') {
+        await supabase.from('reserva').update({ atual_usd: novoAtual }).eq('id', reserva.id)
+      } else {
+        if (reserva.id) await supabase.from('reserva').update({ atual: novoAtual }).eq('id', reserva.id)
+        else await supabase.from('reserva').insert({ user_id: session.user.id, meta: reserva.meta || 30000, atual: novoAtual })
+      }
+
+      // Debita do banco se selecionado
+      if (depBancoId && depMoeda === 'BRL') {
+        const banco = bancos.find(b => b.id === depBancoId)
+        if (banco) {
+          const ns = (banco.saldo || 0) - val
+          await supabase.from('contas_banco').update({ saldo: ns }).eq('id', depBancoId)
+          await supabase.from('extrato_banco').insert({
+            user_id: session.user.id, casal_code: profile.casal_code,
+            banco_id: depBancoId, banco_nome: banco.banco,
+            tipo: 'saida', descricao: 'Depósito na reserva de emergência',
+            valor: val, saldo_apos: ns,
+            mes: new Date().getMonth(), ano: new Date().getFullYear(),
+          })
+        }
+      }
+
+      // Lança como despesa categoria Investimento
+      if (depMoeda === 'BRL') {
+        await supabase.from('despesas').insert({
+          user_id: session.user.id, casal_code: profile.casal_code || session.user.id,
+          nome: 'Aporte reserva de emergência', valor: val,
+          categoria: 'Investimento', quem: profile.papel,
+          tipo: 'fixa', pagamento_tipo: 'debito',
+          banco_id: depBancoId || null,
+          banco_nome: bancos.find(b => b.id === depBancoId)?.banco || '',
+          mes: new Date().getMonth(), ano: new Date().getFullYear(),
+        })
+      }
+
+      setModalDeposito(false); setDepValor(''); loadData()
+      alert('✅ ' + (depMoeda === 'USD' ? 'US$' : 'R$') + val.toFixed(2) + ' adicionados à reserva!')
+    } catch(e) { alert(e.message) } finally { setSaving(false) }
   }
 
   async function salvarRetirada(e) {
@@ -256,7 +309,11 @@ export default function Reserva({ session, profile }) {
       </div>
 
       {/* Botões de ação */}
-      <div className="row" style={{ gap: 10 }}>
+      <div className="row" style={{ gap: 10, flexWrap:'wrap' }}>
+        <button className="btn" style={{ background:'#1D9E75', color:'#fff' }}
+          onClick={() => { setDepValor(''); setDepMoeda('BRL'); setDepBancoId(bancos[0]?.id||''); setModalDeposito(true) }}>
+          💰 Depositar
+        </button>
         <button className="btn btn-outline" onClick={() => { setNovaMeta(String(reserva.meta || 30000)); setModalMeta(true) }}>
           🎯 Meta manual
         </button>
@@ -338,6 +395,58 @@ export default function Reserva({ session, profile }) {
                 <button type="button" className="btn btn-outline" onClick={() => setModalCfg(false)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Depositar */}
+      {modalDeposito && (
+        <div className="modal-overlay" onClick={() => setModalDeposito(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>💰 Depositar na reserva</h3>
+            <div style={{ background:'#E1F5EE', borderRadius:10, padding:12, marginBottom:16 }}>
+              <div style={{ fontWeight:500, color:'var(--green)' }}>Saldo atual: {fmt(reserva.atual)}</div>
+              {(reserva.atual_usd||0) > 0 && <div style={{ fontSize:12, color:'var(--secondary)', marginTop:4 }}>USD: {fmt(reserva.atual_usd||0,'USD')}</div>}
+            </div>
+            <form onSubmit={salvarDeposito}>
+              <div className="form-group">
+                <label className="form-label">Moeda</label>
+                <select className="form-select" value={depMoeda} onChange={e => setDepMoeda(e.target.value)}>
+                  <option value="BRL">🇧🇷 Real (BRL)</option>
+                  <option value="USD">🇺🇸 Dólar (USD)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Valor ({depMoeda})</label>
+                <input className="form-input" type="number" step="0.01" placeholder="Ex: 500"
+                  value={depValor} onChange={e => setDepValor(e.target.value)} required />
+                {depValor && (
+                  <div style={{ fontSize:12, marginTop:6, color:'var(--green)' }}>
+                    Após depósito: {depMoeda==='USD' ? fmt((reserva.atual_usd||0)+parseFloat(depValor||0),'USD') : fmt((reserva.atual||0)+parseFloat(depValor||0))}
+                  </div>
+                )}
+              </div>
+              {depMoeda === 'BRL' && (
+                <div className="form-group">
+                  <label className="form-label">🏦 Debitar de qual banco?</label>
+                  <select className="form-select" value={depBancoId} onChange={e => setDepBancoId(e.target.value)}>
+                    <option value="">Não movimentar banco</option>
+                    {bancos.map(b => <option key={b.id} value={b.id}>{b.banco} — {fmt(b.saldo, b.moeda)}</option>)}
+                  </select>
+                  {depBancoId && depValor && (() => {
+                    const banco = bancos.find(b => b.id === depBancoId)
+                    const ns = (banco?.saldo||0) - (parseFloat(depValor)||0)
+                    return <div style={{ fontSize:12, marginTop:6, color: ns>=0?'var(--green)':'var(--red)' }}>Saldo após: {fmt(ns)} {ns<0?'⚠️':'✓'}</div>
+                  })()}
+                </div>
+              )}
+              <div className="modal-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setModalDeposito(false)}>Cancelar</button>
+                <button type="submit" className="btn" style={{ background:'#1D9E75', color:'#fff' }} disabled={saving}>
+                  {saving ? 'Salvando...' : 'Confirmar depósito'}
                 </button>
               </div>
             </form>
