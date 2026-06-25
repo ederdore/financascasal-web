@@ -8,10 +8,12 @@ import { chamarIA } from '../components/IAEngine.js'
 
 // ── Fases do jardim ────────────────────────────────────
 const FASES_JARDIM = [
-  { min: 0,   max: 10,  emoji: '🌱', nome: 'Broto',  msg: 'Todo grande jardim começou com uma única semente.' },
-  { min: 10,  max: 35,  emoji: '🌿', nome: 'Crescimento', msg: 'Vocês já estão construindo raízes fortes.' },
-  { min: 35,  max: 70,  emoji: '🌳', nome: 'Árvore', msg: 'Seu patrimônio começa a gerar frutos.' },
-  { min: 70,  max: 100, emoji: '🌳🌳🌳', nome: 'Jardim', msg: 'Vocês construíram um jardim sólido.' },
+  { min: 0,  max: 26, emoji: '🌑', nome: 'Terra árida',  cor: '#E24B4A', msg: 'O jardim precisa de atenção urgente. Vamos começar pela fundação.' },
+  { min: 26, max: 41, emoji: '🌱', nome: 'Broto',        cor: '#EF9F27', msg: 'Primeiros passos dados. Todo grande jardim começou com uma única semente.' },
+  { min: 41, max: 56, emoji: '🌿', nome: 'Crescimento',  cor: '#DFB86A', msg: 'Vocês já estão construindo raízes fortes.' },
+  { min: 56, max: 71, emoji: '🌳', nome: 'Árvore',       cor: '#C89A4A', msg: 'Estrutura sólida. Seu patrimônio começa a gerar frutos.' },
+  { min: 71, max: 86, emoji: '🌳🌸', nome: 'Jardim',     cor: '#7EA77F', msg: 'Vocês construíram um jardim que floresce.' },
+  { min: 86, max: 101,emoji: '🌟', nome: 'Legado',       cor: '#3E6344', msg: 'Um jardim completo que se multiplica e protege as próximas gerações.' },
 ]
 
 function getFaseJardim(saudeScore) {
@@ -30,48 +32,99 @@ function calcularEngajamento({ totalRec, totalMetas, metasBatidas, pctReserva })
 }
 
 // ── Score de saúde financeira real ───────────────────
-function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcamento, despesasPorCat, faturaTotal, limiteTotal, contasAtrasadas }) {
-  if (totalRec === 0) return 30 // sem dados suficientes
+function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcamento, faturaTotal, limiteTotal, contasAtrasadas }) {
+  if (totalRec === 0) return { score: 0, breakdown: [] }
 
+  const breakdown = []
   let score = 0
 
-  // 1. Saldo positivo (25pts)
-  if (saldo > 0) {
-    const pctSaldo = (saldo / totalRec) * 100
-    if (pctSaldo >= 20) score += 25
-    else if (pctSaldo >= 10) score += 18
-    else if (pctSaldo >= 0) score += 10
-  }
+  // 1. Saldo vs receita (25pts)
+  const pctSaldo = totalRec > 0 ? (saldo / totalRec) * 100 : 0
+  let pts1 = 0
+  if (pctSaldo >= 20) pts1 = 25
+  else if (pctSaldo >= 10) pts1 = 18
+  else if (pctSaldo > 0) pts1 = 10
+  else if (pctSaldo === 0) pts1 = 3
+  score += pts1
+  breakdown.push({
+    label: 'Saldo do mês',
+    pts: pts1, max: 25,
+    status: pts1 >= 18 ? 'ok' : pts1 >= 10 ? 'atencao' : 'critico',
+    detalhe: pctSaldo >= 0
+      ? `${pctSaldo.toFixed(0)}% da receita sobrou — meta: ≥20%`
+      : `Gastos superaram receitas em ${fmt(Math.abs(saldo))}`,
+  })
 
-  // 2. Taxa de poupança vs meta do orçamento (25pts)
+  // 2. Taxa de poupança (25pts)
   const metaPoupanca = orcamento?.pct_poupanca || 20
-  if (poupanca >= metaPoupanca) score += 25
-  else if (poupanca >= metaPoupanca * 0.7) score += 15
-  else if (poupanca >= metaPoupanca * 0.4) score += 8
-  else if (poupanca > 0) score += 3
+  let pts2 = 0
+  if (poupanca >= metaPoupanca) pts2 = 25
+  else if (poupanca >= metaPoupanca * 0.7) pts2 = 15
+  else if (poupanca >= metaPoupanca * 0.4) pts2 = 8
+  else if (poupanca > 0) pts2 = 3
+  score += pts2
+  breakdown.push({
+    label: 'Taxa de poupança',
+    pts: pts2, max: 25,
+    status: pts2 >= 20 ? 'ok' : pts2 >= 8 ? 'atencao' : 'critico',
+    detalhe: `${poupanca.toFixed(0)}% poupado — meta: ${metaPoupanca}% da renda`,
+  })
 
   // 3. Reserva de emergência (25pts)
-  if (pctReserva >= 100) score += 25
-  else if (pctReserva >= 75) score += 20
-  else if (pctReserva >= 50) score += 14
-  else if (pctReserva >= 25) score += 8
-  else if (pctReserva > 0) score += 3
+  let pts3 = 0
+  if (pctReserva >= 100) pts3 = 25
+  else if (pctReserva >= 75) pts3 = 20
+  else if (pctReserva >= 50) pts3 = 14
+  else if (pctReserva >= 25) pts3 = 8
+  else if (pctReserva > 0) pts3 = 3
+  score += pts3
+  breakdown.push({
+    label: 'Reserva de emergência',
+    pts: pts3, max: 25,
+    status: pts3 >= 20 ? 'ok' : pts3 >= 8 ? 'atencao' : 'critico',
+    detalhe: pctReserva >= 100
+      ? 'Reserva completa — jardim protegido!'
+      : `${pctReserva.toFixed(0)}% da meta — fundação em construção`,
+  })
 
-  // 4. Fatura do cartão controlada (15pts)
-  if (limiteTotal > 0) {
-    const pctFatura = (faturaTotal / limiteTotal) * 100
-    if (pctFatura <= 30) score += 15
-    else if (pctFatura <= 50) score += 10
-    else if (pctFatura <= 70) score += 5
-  } else {
-    score += 10 // sem cartão = sem risco
+  // 4. Fatura do cartão vs RECEITA (15pts) — não vs limite
+  let pts4 = 0
+  if (faturaTotal === 0) {
+    pts4 = 15
+  } else if (totalRec > 0) {
+    const pctFaturaRec = (faturaTotal / totalRec) * 100
+    if (pctFaturaRec <= 20) pts4 = 15
+    else if (pctFaturaRec <= 35) pts4 = 10
+    else if (pctFaturaRec <= 50) pts4 = 5
+    else pts4 = 0
+    breakdown.push({
+      label: 'Fatura vs renda',
+      pts: pts4, max: 15,
+      status: pts4 >= 10 ? 'ok' : pts4 >= 5 ? 'atencao' : 'critico',
+      detalhe: `Fatura ${fmt(faturaTotal)} = ${pctFaturaRec.toFixed(0)}% da renda — ideal: ≤20%`,
+    })
   }
+  if (faturaTotal === 0) {
+    breakdown.push({ label: 'Fatura do cartão', pts: 15, max: 15, status: 'ok', detalhe: 'Sem fatura aberta' })
+  }
+  score += pts4
 
   // 5. Contas em dia (10pts)
-  if (contasAtrasadas === 0) score += 10
-  else if (contasAtrasadas === 1) score += 5
+  let pts5 = 0
+  if (contasAtrasadas === 0) pts5 = 10
+  else if (contasAtrasadas === 1) pts5 = 4
+  else pts5 = 0
+  score += pts5
+  breakdown.push({
+    label: 'Contas em dia',
+    pts: pts5, max: 10,
+    status: pts5 === 10 ? 'ok' : pts5 > 0 ? 'atencao' : 'critico',
+    detalhe: contasAtrasadas === 0
+      ? 'Nenhuma conta em atraso'
+      : `${contasAtrasadas} conta(s) em atraso este mês`,
+  })
 
-  return Math.min(100, Math.max(15, score))
+  return { score: Math.min(100, Math.max(0, score)), breakdown }
 }
 
 
@@ -270,7 +323,7 @@ export default function Jardim({ session, profile }) {
       const faturaTotal = (cartoes.data||[]).reduce((s,c)=>s+(c.fatura||0),0)
 
       // Score de saúde real (qualidade dos frutos)
-      const saude = calcularSaude({
+      const { score: saude, breakdown: saudeBreakdown } = calcularSaude({
         saldo: totalRec-totalDesp, totalRec, totalDesp,
         pctReserva, poupanca, orcamento,
         faturaTotal, limiteTotal, contasAtrasadas,
@@ -290,7 +343,7 @@ export default function Jardim({ session, profile }) {
       setDados({
         totalRec, totalDesp, saldo: totalRec-totalDesp,
         saldoBancos, faturas, reserva, pctReserva,
-        patrimônio, poupanca, saude, engajamento, regra,
+        patrimônio, poupanca, saude, saudeBreakdown, engajamento, regra,
         metas: metas.slice(0,4),
         metasBatidas,
         vazamentos: vadamentos,
@@ -340,17 +393,38 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
           </div>
           <div style={{ textAlign:'right' }}>
             <div style={{ fontSize:10, color:'rgba(232,220,200,.5)', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Saúde do Jardim</div>
-            <div style={{ fontSize:36, fontWeight:700, color: dados.saude >= 70 ? '#C4973A' : dados.saude >= 40 ? '#DFB86A' : '#E24B4A', lineHeight:1 }}>
+            <div style={{ fontSize:36, fontWeight:700, color: faseJardim.cor || '#DFB86A', lineHeight:1 }}>
               {dados.saude}%
             </div>
-            <div style={{ fontSize:11, color:'rgba(232,220,200,.5)', marginTop:4 }}>{faseJardim.nome}</div>
+            <div style={{ fontSize:11, color:'rgba(232,220,200,.6)', marginTop:4, fontWeight:500 }}>
+              {faseJardim.emoji} {faseJardim.nome}
+            </div>
+            {/* Breakdown tooltip */}
+            {dados.saudeBreakdown?.length > 0 && (
+              <div style={{ marginTop:10, paddingTop:10, borderTop:'0.5px solid rgba(255,255,255,.1)' }}>
+                {dados.saudeBreakdown.map((item, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:5 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:5, flex:1 }}>
+                      <span style={{ fontSize:9 }}>
+                        {item.status==='ok'?'✅':item.status==='atencao'?'⚠️':'❌'}
+                      </span>
+                      <span style={{ fontSize:10, color:'rgba(232,220,200,.6)' }}>{item.label}</span>
+                    </div>
+                    <span style={{ fontSize:10, fontWeight:600, color: item.status==='ok'?'#7EA77F':item.status==='atencao'?'#DFB86A':'#E24B4A', flexShrink:0 }}>
+                      {item.pts}/{item.max}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Engajamento */}
             <div style={{ marginTop:8, paddingTop:8, borderTop:'0.5px solid rgba(255,255,255,.1)' }}>
-              <div style={{ fontSize:10, color:'rgba(232,220,200,.4)', marginBottom:4 }}>Engajamento</div>
-              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <div style={{ flex:1, height:3, background:'rgba(255,255,255,.1)', borderRadius:2 }}>
-                  <div style={{ height:'100%', width:dados.engajamento+'%', background:'#7EA77F', borderRadius:2 }}/>
-                </div>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                <span style={{ fontSize:10, color:'rgba(232,220,200,.4)' }}>Engajamento</span>
                 <span style={{ fontSize:10, color:'rgba(232,220,200,.5)' }}>{dados.engajamento}%</span>
+              </div>
+              <div style={{ height:3, background:'rgba(255,255,255,.1)', borderRadius:2 }}>
+                <div style={{ height:'100%', width:dados.engajamento+'%', background:'#7EA77F', borderRadius:2 }}/>
               </div>
             </div>
           </div>
