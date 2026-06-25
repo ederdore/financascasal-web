@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase.js'
+import OrcamentoConfig from '../components/OrcamentoConfig.jsx'
 
 const OBJETIVOS = [
   ['controle', '📊 Controle financeiro'],
@@ -164,6 +165,7 @@ export default function Configuracoes({ session, profile, onProfileUpdate }) {
     ['seguranca', '🔒 Segurança'],
     ['lgpd', '🛡 Privacidade'],
     ['notificacoes', '🔔 Notificações'],
+    ['orcamento', '💰 Orçamento'],
   ]
 
   async function salvarNotificacoes() {
@@ -405,6 +407,11 @@ export default function Configuracoes({ session, profile, onProfileUpdate }) {
           </div>
         </div>
       )}
+      {/* ── ORÇAMENTO ── */}
+      {aba === 'orcamento' && (
+        <OrcamentoConfig session={session} profile={profile} />
+      )}
+
       {/* ── NOTIFICAÇÕES ── */}
       {aba === 'notificacoes' && (
         <div className="card">

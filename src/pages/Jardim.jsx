@@ -19,19 +19,59 @@ function getFaseJardim(saudeScore) {
 }
 
 // ── Saúde do jardim ────────────────────────────────────
-function calcularSaude({ saldo, totalRec, pctReserva, totalMetas, metasBatidas, poupanca }) {
-  // Base de 30 — usar o app já é positivo
+// ── Score de engajamento (uso da ferramenta) ─────────
+function calcularEngajamento({ totalRec, totalMetas, metasBatidas, pctReserva }) {
   let score = 30
-  if (totalRec > 0) score += 10       // tem receitas cadastradas
-  if (saldo >= 0) score += 15         // mês no azul
-  if (poupanca >= 20) score += 15     // poupando bem
-  else if (poupanca >= 5) score += 8  // poupando um pouco
-  if (pctReserva >= 100) score += 20  // reserva completa
-  else if (pctReserva >= 50) score += 10
-  else if (pctReserva > 0) score += 5
-  if (totalMetas > 0) score += 5      // tem metas
-  if (metasBatidas > 0) score += 5    // meta concluída
+  if (totalRec > 0) score += 20       // tem receitas cadastradas
+  if (totalMetas > 0) score += 20     // tem metas
+  if (metasBatidas > 0) score += 15   // meta concluída
+  if (pctReserva > 0) score += 15     // reserva configurada
   return Math.min(100, Math.max(30, score))
+}
+
+// ── Score de saúde financeira real ───────────────────
+function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcamento, despesasPorCat, faturaTotal, limiteTotal, contasAtrasadas }) {
+  if (totalRec === 0) return 30 // sem dados suficientes
+
+  let score = 0
+
+  // 1. Saldo positivo (25pts)
+  if (saldo > 0) {
+    const pctSaldo = (saldo / totalRec) * 100
+    if (pctSaldo >= 20) score += 25
+    else if (pctSaldo >= 10) score += 18
+    else if (pctSaldo >= 0) score += 10
+  }
+
+  // 2. Taxa de poupança vs meta do orçamento (25pts)
+  const metaPoupanca = orcamento?.pct_poupanca || 20
+  if (poupanca >= metaPoupanca) score += 25
+  else if (poupanca >= metaPoupanca * 0.7) score += 15
+  else if (poupanca >= metaPoupanca * 0.4) score += 8
+  else if (poupanca > 0) score += 3
+
+  // 3. Reserva de emergência (25pts)
+  if (pctReserva >= 100) score += 25
+  else if (pctReserva >= 75) score += 20
+  else if (pctReserva >= 50) score += 14
+  else if (pctReserva >= 25) score += 8
+  else if (pctReserva > 0) score += 3
+
+  // 4. Fatura do cartão controlada (15pts)
+  if (limiteTotal > 0) {
+    const pctFatura = (faturaTotal / limiteTotal) * 100
+    if (pctFatura <= 30) score += 15
+    else if (pctFatura <= 50) score += 10
+    else if (pctFatura <= 70) score += 5
+  } else {
+    score += 10 // sem cartão = sem risco
+  }
+
+  // 5. Contas em dia (10pts)
+  if (contasAtrasadas === 0) score += 10
+  else if (contasAtrasadas === 1) score += 5
+
+  return Math.min(100, Math.max(15, score))
 }
 
 
@@ -191,14 +231,16 @@ export default function Jardim({ session, profile }) {
     const mes = now.getMonth()
     const ano = now.getFullYear()
     try {
-      const [desp, rec, bancos, cartoes, reservaD, metasD, aportes] = await Promise.all([
+      const [desp, rec, bancos, cartoes, reservaD, metasD, aportes, orcamentoD, contasD] = await Promise.all([
         supabase.from('despesas').select('valor,categoria,nome').eq('casal_code', cc).eq('mes', mes).eq('ano', ano),
         supabase.from('receitas').select('valor').eq('casal_code', cc).eq('mes', mes).eq('ano', ano),
         supabase.from('contas_banco').select('banco,saldo').eq('casal_code', cc),
-        supabase.from('cartoes').select('nome,fatura').eq('casal_code', cc),
+        supabase.from('cartoes').select('nome,fatura,limite').eq('casal_code', cc),
         supabase.from('reserva').select('atual,meta').eq('user_id', uid).maybeSingle(),
         supabase.from('metas').select('*').eq('casal_code', cc).eq('ativa', true),
         supabase.from('aportes_metas').select('valor').eq('casal_code', cc).eq('mes', mes).eq('ano', ano),
+        supabase.from('orcamento_config').select('*').eq('casal_code', cc).maybeSingle(),
+        supabase.from('contas_fixas').select('id,dia_vencimento').eq('casal_code', cc),
       ])
 
       const totalRec  = (rec.data||[]).reduce((s,r)=>s+r.valor,0)
@@ -213,11 +255,29 @@ export default function Jardim({ session, profile }) {
       const patrimônio = saldoBancos + reserva.atual + investimentos
       const poupanca = totalRec > 0 ? ((totalRec-totalDesp)/totalRec)*100 : 0
 
-      // Regra 50/30/20
-      const regra = calcular5020(desp.data||[], rec.data||[])
+      // Orçamento configurado
+      const orcamento = orcamentoD.data
 
-      // Saúde do jardim
-      const saude = calcularSaude({ saldo: totalRec-totalDesp, totalRec, pctReserva, totalMetas: metas.length, metasBatidas, poupanca })
+      // Regra 50/30/20
+      const regra = calcular5020(desp.data||[], rec.data||[], orcamento)
+
+      // Contas atrasadas
+      const hoje = now.getDate()
+      const contasAtrasadas = (contasD.data||[]).filter(c => c.dia_vencimento < hoje).length
+
+      // Limite total de cartões
+      const limiteTotal = (cartoes.data||[]).reduce((s,c)=>s+(c.limite||0),0)
+      const faturaTotal = (cartoes.data||[]).reduce((s,c)=>s+(c.fatura||0),0)
+
+      // Score de saúde real (qualidade dos frutos)
+      const saude = calcularSaude({
+        saldo: totalRec-totalDesp, totalRec, totalDesp,
+        pctReserva, poupanca, orcamento,
+        faturaTotal, limiteTotal, contasAtrasadas,
+      })
+
+      // Score de engajamento (uso da ferramenta)
+      const engajamento = calcularEngajamento({ totalRec, totalMetas: metas.length, metasBatidas, pctReserva })
 
       // Vazamentos — top 5 categorias com maior gasto
       const cats = {}
@@ -230,7 +290,7 @@ export default function Jardim({ session, profile }) {
       setDados({
         totalRec, totalDesp, saldo: totalRec-totalDesp,
         saldoBancos, faturas, reserva, pctReserva,
-        patrimônio, poupanca, saude, regra,
+        patrimônio, poupanca, saude, engajamento, regra,
         metas: metas.slice(0,4),
         metasBatidas,
         vazamentos: vadamentos,
@@ -280,10 +340,19 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
           </div>
           <div style={{ textAlign:'right' }}>
             <div style={{ fontSize:10, color:'rgba(232,220,200,.5)', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Saúde do Jardim</div>
-            <div style={{ fontSize:36, fontWeight:700, color: dados.saude >= 70 ? '#C4973A' : '#DFB86A', lineHeight:1 }}>
+            <div style={{ fontSize:36, fontWeight:700, color: dados.saude >= 70 ? '#C4973A' : dados.saude >= 40 ? '#DFB86A' : '#E24B4A', lineHeight:1 }}>
               {dados.saude}%
             </div>
             <div style={{ fontSize:11, color:'rgba(232,220,200,.5)', marginTop:4 }}>{faseJardim.nome}</div>
+            <div style={{ marginTop:8, paddingTop:8, borderTop:'0.5px solid rgba(255,255,255,.1)' }}>
+              <div style={{ fontSize:10, color:'rgba(232,220,200,.4)', marginBottom:4 }}>Engajamento</div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <div style={{ flex:1, height:3, background:'rgba(255,255,255,.1)', borderRadius:2 }}>
+                  <div style={{ height:'100%', width:dados.engajamento+'%', background:'#7EA77F', borderRadius:2 }}/>
+                </div>
+                <span style={{ fontSize:10, color:'rgba(232,220,200,.5)' }}>{dados.engajamento}%</span>
+              </div>
+            </div>
           </div>
         </div>
 
