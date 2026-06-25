@@ -399,24 +399,7 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
             <div style={{ fontSize:11, color:'rgba(232,220,200,.6)', marginTop:4, fontWeight:500 }}>
               {faseJardim.emoji} {faseJardim.nome}
             </div>
-            {/* Breakdown tooltip */}
-            {dados.saudeBreakdown?.length > 0 && (
-              <div style={{ marginTop:10, paddingTop:10, borderTop:'0.5px solid rgba(255,255,255,.1)' }}>
-                {dados.saudeBreakdown.map((item, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:5 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:5, flex:1 }}>
-                      <span style={{ fontSize:9 }}>
-                        {item.status==='ok'?'✅':item.status==='atencao'?'⚠️':'❌'}
-                      </span>
-                      <span style={{ fontSize:10, color:'rgba(232,220,200,.6)' }}>{item.label}</span>
-                    </div>
-                    <span style={{ fontSize:10, fontWeight:600, color: item.status==='ok'?'#7EA77F':item.status==='atencao'?'#DFB86A':'#E24B4A', flexShrink:0 }}>
-                      {item.pts}/{item.max}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+
             {/* Engajamento */}
             <div style={{ marginTop:8, paddingTop:8, borderTop:'0.5px solid rgba(255,255,255,.1)' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
@@ -472,6 +455,93 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
           </div>
           <JardimSVG score={dados.saude} />
         </div>
+
+        {/* Diagnóstico do jardim */}
+        {dados.saudeBreakdown?.length > 0 && (
+          <div className="card" style={{ marginBottom:16 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+              <div>
+                <div style={{ fontWeight:600, fontSize:14 }}>📋 Diagnóstico do jardim</div>
+                <div style={{ fontSize:12, color:'var(--secondary)', marginTop:2 }}>
+                  O que está impactando sua saúde financeira
+                </div>
+              </div>
+              <div style={{
+                fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:20,
+                background: dados.saude >= 71 ? '#E1F5EE' : dados.saude >= 41 ? '#FFF8EE' : '#FCEBEB',
+                color: dados.saude >= 71 ? 'var(--green)' : dados.saude >= 41 ? 'var(--yellow)' : 'var(--red)',
+              }}>
+                {faseJardim.emoji} {faseJardim.nome}
+              </div>
+            </div>
+
+            {/* Barra de progresso total */}
+            <div style={{ marginBottom:16 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:6 }}>
+                <span style={{ color:'var(--secondary)' }}>Saúde financeira real</span>
+                <span style={{ fontWeight:700, color: dados.saude >= 71?'var(--green)':dados.saude>=41?'var(--yellow)':'var(--red)' }}>
+                  {dados.saude}/100
+                </span>
+              </div>
+              <div style={{ height:8, background:'var(--border)', borderRadius:4, overflow:'hidden' }}>
+                <div style={{
+                  height:'100%',
+                  width: dados.saude + '%',
+                  background: dados.saude>=71?'var(--green)':dados.saude>=41?'var(--yellow)':'var(--red)',
+                  borderRadius:4, transition:'width .6s'
+                }}/>
+              </div>
+            </div>
+
+            {/* Itens do breakdown */}
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {dados.saudeBreakdown.map((item, i) => (
+                <div key={i}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <div style={{
+                        width:24, height:24, borderRadius:6, flexShrink:0,
+                        display:'flex', alignItems:'center', justifyContent:'center', fontSize:12,
+                        background: item.status==='ok'?'#E1F5EE':item.status==='atencao'?'#FFF8EE':'#FCEBEB',
+                      }}>
+                        {item.status==='ok'?'✅':item.status==='atencao'?'⚠️':'❌'}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:13, fontWeight:500 }}>{item.label}</div>
+                        <div style={{ fontSize:11, color:'var(--secondary)', marginTop:1 }}>{item.detalhe}</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign:'right', flexShrink:0, marginLeft:8 }}>
+                      <span style={{
+                        fontSize:12, fontWeight:700,
+                        color: item.status==='ok'?'var(--green)':item.status==='atencao'?'var(--yellow)':'var(--red)'
+                      }}>
+                        {item.pts}
+                      </span>
+                      <span style={{ fontSize:11, color:'var(--secondary)' }}>/{item.max}</span>
+                    </div>
+                  </div>
+                  {/* Mini barra por item */}
+                  <div style={{ height:3, background:'var(--border)', borderRadius:2, marginLeft:32, overflow:'hidden' }}>
+                    <div style={{
+                      height:'100%',
+                      width: item.max > 0 ? (item.pts/item.max*100)+'%' : '0%',
+                      background: item.status==='ok'?'var(--green)':item.status==='atencao'?'var(--yellow)':'var(--red)',
+                      borderRadius:2, transition:'width .4s'
+                    }}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mensagem motivadora baseada no estágio */}
+            <div style={{ marginTop:16, padding:12, background:'var(--bg)', borderRadius:10, borderLeft:'3px solid var(--eden-green)' }}>
+              <div style={{ fontSize:12, color:'var(--secondary)', fontStyle:'italic' }}>
+                "{faseJardim.msg}"
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Broto IA */}
         <div className="card" style={{ background:'#2C1F14', border:'none', color:'#fff' }}>
