@@ -32,7 +32,7 @@ function calcularEngajamento({ totalRec, totalMetas, metasBatidas, pctReserva })
 }
 
 // ── Score de saúde financeira real ───────────────────
-function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcamento, faturaTotal, limiteTotal, contasAtrasadas }) {
+function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcamento, faturaTotal, limiteTotal, contasAtrasadas, reservaAtual, reservaMeta }) {
   if (totalRec === 0) return { score: 0, breakdown: [] }
 
   const breakdown = []
@@ -50,9 +50,9 @@ function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcam
     label: 'Saldo do mês',
     pts: pts1, max: 25,
     status: pts1 >= 18 ? 'ok' : pts1 >= 10 ? 'atencao' : 'critico',
-    detalhe: pctSaldo >= 0
-      ? `${pctSaldo.toFixed(0)}% da receita sobrou — meta: ≥20%`
-      : `Gastos superaram receitas em ${fmt(Math.abs(saldo))}`,
+    detalhe: saldo >= 0
+      ? fmt(saldo) + ' sobraram (' + pctSaldo.toFixed(0) + '% da receita) — meta: ≥20%'
+      : 'Gastos superaram receitas em ' + fmt(Math.abs(saldo)),
   })
 
   // 2. Taxa de poupança (25pts)
@@ -67,7 +67,9 @@ function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcam
     label: 'Taxa de poupança',
     pts: pts2, max: 25,
     status: pts2 >= 20 ? 'ok' : pts2 >= 8 ? 'atencao' : 'critico',
-    detalhe: `${poupanca.toFixed(0)}% poupado — meta: ${metaPoupanca}% da renda`,
+    detalhe: poupanca > 0
+      ? poupanca.toFixed(0) + '% poupado (' + fmt(totalDesp * poupanca / 100) + ') — meta: ' + metaPoupanca + '%'
+      : 'Nenhum valor poupado este mês — meta: ' + metaPoupanca + '% da renda',
   })
 
   // 3. Reserva de emergência (25pts)
@@ -84,7 +86,7 @@ function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcam
     status: pts3 >= 20 ? 'ok' : pts3 >= 8 ? 'atencao' : 'critico',
     detalhe: pctReserva >= 100
       ? 'Reserva completa — jardim protegido!'
-      : `${pctReserva.toFixed(0)}% da meta — fundação em construção`,
+      : fmt(reservaAtual) + ' de ' + fmt(reservaMeta) + ' — faltam ' + fmt(Math.max(0, reservaMeta - reservaAtual)),
   })
 
   // 4. Fatura do cartão vs RECEITA (15pts) — não vs limite
@@ -101,7 +103,7 @@ function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcam
       label: 'Fatura vs renda',
       pts: pts4, max: 15,
       status: pts4 >= 10 ? 'ok' : pts4 >= 5 ? 'atencao' : 'critico',
-      detalhe: `Fatura ${fmt(faturaTotal)} = ${pctFaturaRec.toFixed(0)}% da renda — ideal: ≤20%`,
+      detalhe: 'Fatura ' + fmt(faturaTotal) + ' = ' + pctFaturaRec.toFixed(0) + '% da renda ' + fmt(totalRec) + ' — ideal: ≤20%',
     })
   }
   if (faturaTotal === 0) {
@@ -120,8 +122,8 @@ function calcularSaude({ saldo, totalRec, totalDesp, pctReserva, poupanca, orcam
     pts: pts5, max: 10,
     status: pts5 === 10 ? 'ok' : pts5 > 0 ? 'atencao' : 'critico',
     detalhe: contasAtrasadas === 0
-      ? 'Nenhuma conta em atraso'
-      : `${contasAtrasadas} conta(s) em atraso este mês`,
+      ? 'Nenhuma conta em atraso este mês'
+      : contasAtrasadas + ' conta(s) em atraso — regularize para proteger o score',
   })
 
   return { score: Math.min(100, Math.max(0, score)), breakdown }
@@ -323,10 +325,13 @@ export default function Jardim({ session, profile }) {
       const faturaTotal = (cartoes.data||[]).reduce((s,c)=>s+(c.fatura||0),0)
 
       // Score de saúde real (qualidade dos frutos)
+      const reservaAtual = reservaD.data?.atual || 0
+      const reservaMeta  = reservaD.data?.meta  || 30000
       const { score: saude, breakdown: saudeBreakdown } = calcularSaude({
         saldo: totalRec-totalDesp, totalRec, totalDesp,
         pctReserva, poupanca, orcamento,
         faturaTotal, limiteTotal, contasAtrasadas,
+        reservaAtual, reservaMeta,
       })
 
       // Score de engajamento (uso da ferramenta)
