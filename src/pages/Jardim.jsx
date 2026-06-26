@@ -390,10 +390,10 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
         {/* Linha 1 — saudação + score anel */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:20 }}>
           <div>
-            <div style={{ fontSize:12, color:'rgba(232,220,200,.55)', marginBottom:6, letterSpacing:.3 }}>
+            <div style={{ fontSize:13, color:'rgba(232,220,200,.55)', marginBottom:6, letterSpacing:.3 }}>
               🌿 Bom dia, {nome1}
             </div>
-            <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:600, color:'#fff', letterSpacing:-.5, lineHeight:1.15, marginBottom:0 }}>
+            <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:30, fontWeight:600, color:'#fff', letterSpacing:-.5, lineHeight:1.15, marginBottom:0 }}>
               {faseJardim.score >= 56 ? 'Seu jardim está' : faseJardim.score >= 26 ? 'Seu jardim está' : 'Seu jardim'}<br/>
               <em style={{ color:'#C4973A', fontStyle:'italic' }}>
                 {dados.saude >= 71 ? 'florescendo.' : dados.saude >= 41 ? 'crescendo.' : dados.saude >= 26 ? 'brotando.' : 'precisa de atenção.'}
@@ -412,11 +412,11 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
                 />
               </svg>
               <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-                <div style={{ fontSize:18, fontWeight:500, color:'#DFB86A', lineHeight:1 }}>{dados.saude}%</div>
-                <div style={{ fontSize:9, color:'rgba(196,151,58,.5)', marginTop:2, letterSpacing:.3 }}>saúde</div>
+                <div style={{ fontSize:20, fontWeight:500, color:'#DFB86A', lineHeight:1 }}>{dados.saude}%</div>
+                <div style={{ fontSize:10, color:'rgba(196,151,58,.5)', marginTop:2, letterSpacing:.3 }}>saúde</div>
               </div>
             </div>
-            <div style={{ fontSize:10, color:'rgba(232,220,200,.4)', marginTop:6 }}>{faseJardim.emoji} {faseJardim.nome}</div>
+            <div style={{ fontSize:11, color:'rgba(232,220,200,.4)', marginTop:6 }}>{faseJardim.emoji} {faseJardim.nome}</div>
             {/* Engajamento mini */}
             <div style={{ marginTop:6, width:80 }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
@@ -433,35 +433,35 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
         {/* Linha 2 — 3 camadas financeiras */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:20 }}>
           <div style={{ background:'rgba(23,141,209,.12)', borderRadius:12, padding:'10px 12px', border:'0.5px solid rgba(23,141,209,.2)' }}>
-            <div style={{ fontSize:9, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>💵 Principal</div>
-            <div style={{ fontSize:16, fontWeight:500, color:'#fff' }}>{fmt(dados.saldoPrincipal || dados.patrimônio)}</div>
-            <div style={{ fontSize:10, color:'rgba(232,220,200,.35)', marginTop:2 }}>fluxo do mês</div>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>💵 Principal</div>
+            <div style={{ fontSize:17, fontWeight:500, color:'#fff' }}>{fmt(dados.saldoPrincipal || dados.patrimônio)}</div>
+            <div style={{ fontSize:11, color:'rgba(232,220,200,.35)', marginTop:2 }}>fluxo do mês</div>
           </div>
           <div style={{ background:'rgba(29,158,117,.1)', borderRadius:12, padding:'10px 12px', border:'0.5px solid rgba(29,158,117,.2)' }}>
-            <div style={{ fontSize:9, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>🛡 Reserva</div>
-            <div style={{ fontSize:16, fontWeight:500, color:'#fff' }}>{fmt(dados.reservaAtual || 0)}</div>
-            <div style={{ fontSize:10, color:'rgba(232,220,200,.35)', marginTop:2 }}>{dados.pctReserva || 0}% da meta</div>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>🛡 Reserva</div>
+            <div style={{ fontSize:17, fontWeight:500, color:'#fff' }}>{fmt(dados.reservaAtual || 0)}</div>
+            <div style={{ fontSize:11, color:'rgba(232,220,200,.35)', marginTop:2 }}>{dados.pctReserva || 0}% da meta</div>
           </div>
           <div style={{ background:'rgba(196,151,58,.1)', borderRadius:12, padding:'10px 12px', border:'0.5px solid rgba(196,151,58,.2)' }}>
-            <div style={{ fontSize:9, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>📈 Patrimônio</div>
-            <div style={{ fontSize:16, fontWeight:500, color:'#DFB86A' }}>{fmt(dados.patrimônio)}</div>
-            <div style={{ fontSize:10, color:'rgba(232,220,200,.35)', marginTop:2 }}>total consolidado</div>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>📈 Patrimônio</div>
+            <div style={{ fontSize:17, fontWeight:500, color:'#DFB86A' }}>{fmt(dados.patrimônio)}</div>
+            <div style={{ fontSize:11, color:'rgba(232,220,200,.35)', marginTop:2 }}>total consolidado</div>
           </div>
         </div>
 
         {/* Linha 3 — saldo + métricas */}
         <div style={{ display:'flex', gap:28, alignItems:'flex-end', flexWrap:'wrap' }}>
           <div>
-            <div style={{ fontSize:9, color:'rgba(232,220,200,.4)', textTransform:'uppercase', letterSpacing:.5, marginBottom:4 }}>Saldo do mês</div>
-            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:36, fontWeight:600, color: dados.saldo>=0?'#7EA77F':'#E87A6A', letterSpacing:-1, lineHeight:1 }}>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.4)', textTransform:'uppercase', letterSpacing:.5, marginBottom:4 }}>Saldo do mês</div>
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:38, fontWeight:600, color: dados.saldo>=0?'#7EA77F':'#E87A6A', letterSpacing:-1, lineHeight:1 }}>
               {dados.saldo>=0?'+':''}{fmt(dados.saldo)}
             </div>
           </div>
           <div style={{ display:'flex', gap:20, paddingBottom:4 }}>
             {[['Receitas',dados.totalRec,'rgba(122,158,126,.9)'],['Gastos',dados.totalDesp,'rgba(232,220,200,.6)'],['Faturas',dados.faturas,'rgba(232,158,106,.7)']].map(([l,v,c])=>(
               <div key={l}>
-                <div style={{ fontSize:9, color:'rgba(232,220,200,.35)', marginBottom:3, textTransform:'uppercase', letterSpacing:.3 }}>{l}</div>
-                <div style={{ fontSize:14, fontWeight:500, color:c }}>{fmt(v)}</div>
+                <div style={{ fontSize:10, color:'rgba(232,220,200,.35)', marginBottom:3, textTransform:'uppercase', letterSpacing:.3 }}>{l}</div>
+                <div style={{ fontSize:15, fontWeight:500, color:c }}>{fmt(v)}</div>
               </div>
             ))}
           </div>
@@ -474,10 +474,10 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
         {/* Jardim animado */}
         <div style={{ borderRadius:16, overflow:'hidden', background:'#2D4A2E', position:'relative', minHeight:220 }}>
           <div style={{ padding:'16px 18px 0', position:'relative', zIndex:2 }}>
-            <div style={{ display:'inline-block', background:'rgba(196,151,58,0.2)', color:'#DFB86A', fontSize:10, fontWeight:600, padding:'2px 10px', borderRadius:20, border:'0.5px solid rgba(196,151,58,0.3)', marginBottom:8 }}>
+            <div style={{ display:'inline-block', background:'rgba(196,151,58,0.2)', color:'#DFB86A', fontSize:11, fontWeight:600, padding:'3px 12px', borderRadius:20, border:'0.5px solid rgba(196,151,58,0.3)', marginBottom:8 }}>
               {faseJardim.emoji} {faseJardim.nome}
             </div>
-            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:14, color:'rgba(232,220,200,.75)', lineHeight:1.4, fontStyle:'italic' }}>
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:15, color:'rgba(232,220,200,.75)', lineHeight:1.4, fontStyle:'italic' }}>
               "{faseJardim.msg}"
             </div>
           </div>
@@ -486,7 +486,7 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
 
         {/* Diagnóstico compacto */}
         <div style={{ background:'var(--card)', border:'0.5px solid var(--border)', borderRadius:16, padding:16 }}>
-          <div style={{ fontSize:11, fontWeight:600, color:'var(--secondary)', textTransform:'uppercase', letterSpacing:.5, marginBottom:12 }}>
+          <div style={{ fontSize:12, fontWeight:600, color:'var(--secondary)', textTransform:'uppercase', letterSpacing:.5, marginBottom:12 }}>
             Diagnóstico financeiro
           </div>
           {/* Barra total */}
@@ -510,10 +510,10 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
                   </div>
                   <div>
                     <div style={{ fontSize:12, fontWeight:500, color:'var(--primary)' }}>{item.label}</div>
-                    <div style={{ fontSize:10, color:'var(--secondary)', marginTop:1 }}>{item.detalhe}</div>
+                    <div style={{ fontSize:11, color:'var(--secondary)', marginTop:1 }}>{item.detalhe}</div>
                   </div>
                 </div>
-                <span style={{ fontSize:11, fontWeight:600, flexShrink:0, marginLeft:6,
+                <span style={{ fontSize:12, fontWeight:600, flexShrink:0, marginLeft:6,
                   color: item.status==='ok'?'var(--green)':item.status==='atencao'?'var(--yellow)':'var(--red)' }}>
                   {item.pts}/{item.max}
                 </span>

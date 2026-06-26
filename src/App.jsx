@@ -108,14 +108,14 @@ function SidebarMaturidade({ session, profile }) {
   return (
     <div style={{ margin:'8px 10px', padding:'10px 12px', background:'#FFFFFF', borderRadius:10, boxShadow:'0 1px 4px rgba(0,0,0,0.12)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-        <div style={{ width:28, height:28, borderRadius:8, background:'#F3F0F9', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-          <span style={{ fontSize:15 }}>🧠</span>
+        <div style={{ width:32, height:32, borderRadius:9, background:'#F3F0F9', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <span style={{ fontSize:17 }}>🧠</span>
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:'#2C1F14' }}>{nivelAtual.emoji} Broto {nivelAtual.nome}</div>
-          <div style={{ fontSize:10, color:'#7A7060', marginTop:1 }}>{totalLancamentos} lançamentos</div>
+          <div style={{ fontSize:13, fontWeight:700, color:'#2C1F14' }}>{nivelAtual.emoji} Broto {nivelAtual.nome}</div>
+          <div style={{ fontSize:11, color:'#7A7060', marginTop:1 }}>{totalLancamentos} lançamentos</div>
         </div>
-        <span style={{ fontSize:10, fontWeight:700, background:'#FDF8EC', color:'#C4973A', padding:'2px 8px', borderRadius:20, border:'0.5px solid #C4973A', flexShrink:0 }}>
+        <span style={{ fontSize:11, fontWeight:700, background:'#FDF8EC', color:'#C4973A', padding:'2px 8px', borderRadius:20, border:'0.5px solid #C4973A', flexShrink:0 }}>
           Nv {nivelAtual.nivel}
         </span>
       </div>
@@ -124,7 +124,7 @@ function SidebarMaturidade({ session, profile }) {
           <div style={{ height:4, background:'#E8DCC8', borderRadius:2, overflow:'hidden', marginBottom:5 }}>
             <div style={{ height:'100%', width:`${pctProximo}%`, background:'linear-gradient(90deg,#C4973A,#DFB86A)', borderRadius:2, transition:'width 0.5s' }} />
           </div>
-          <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#7A7060' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'#7A7060' }}>
             <span>{pctProximo}%</span>
             <span>{proximo.emoji} {proximo.nome} em {proximo.lancamentos - totalLancamentos}</span>
           </div>
@@ -221,12 +221,12 @@ export default function App() {
         {/* Logo */}
         <div className="sidebar-logo">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:30, height:30, borderRadius:9, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:17, fontWeight:700, color:'var(--eden-cream)' }}>É</span>
+            <div style={{ width:34, height:34, borderRadius:10, background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:700, color:'var(--eden-cream)' }}>É</span>
             </div>
             <div>
-              <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:600, letterSpacing:0.3, color:'var(--eden-cream)' }}>Éden</h1>
-              <p style={{ fontStyle:'italic', color:'rgba(232,220,200,0.55)', fontSize:10 }}>Finanças a dois, sem segredos.</p>
+              <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:600, letterSpacing:0.3, color:'var(--eden-cream)' }}>Éden</h1>
+              <p style={{ fontStyle:'italic', color:'rgba(232,220,200,0.55)', fontSize:11 }}>Finanças a dois, sem segredos.</p>
             </div>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function App() {
             if (!visíveis.length) return null
             return (
               <div key={sec.id}>
-                <div className="nav-section-label">{sec.label}</div>
+                <div className="nav-section-label" style={{ fontSize:11 }}>{sec.label}</div>
                 {visíveis.map(t => (
                   <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
                     <NavIcon id={t.icon} />
@@ -264,7 +264,7 @@ export default function App() {
                 <span className="sidebar-user-name">{profile.nome}</span>
                 <SidebarFaseBadge session={session} profile={profile} />
               </div>
-              <div className="sidebar-user-role">{profile.papel?.toUpperCase()} · {profile.casal_code}</div>
+              <div className="sidebar-user-role" style={{ fontSize:11 }}>{profile.papel?.toUpperCase()} · {profile.casal_code}</div>
             </div>
             <button onClick={() => supabase.auth.signOut()} title="Sair"
               style={{ background:'none', border:'none', color:'rgba(232,220,200,0.4)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', flexShrink:0 }}>
@@ -284,10 +284,10 @@ export default function App() {
             <div className="topbar-page-icon">
               <div style={{ width:18, height:18 }} dangerouslySetInnerHTML={{ __html: ICONS[tab] || '' }} />
             </div>
-            <h2>{tabAtual?.label}</h2>
+            <h2 style={{ fontSize:16 }}>{tabAtual?.label}</h2>
           </div>
           <div className="topbar-right">
-            <span style={{ fontSize:11, color:'var(--secondary)', background:'var(--eden-sand)', padding:'4px 10px', borderRadius:8, fontFamily:'monospace', letterSpacing:1 }}>
+            <span style={{ fontSize:12, color:'var(--secondary)', background:'var(--eden-sand)', padding:'4px 10px', borderRadius:8, fontFamily:'monospace', letterSpacing:1 }}>
               {profile.casal_code}
             </span>
           </div>
