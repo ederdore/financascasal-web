@@ -23,6 +23,7 @@ export default function Bancos({ session, profile }) {
   const [titular, setTitular] = useState(profile.papel)
   const [saldo, setSaldo] = useState('')
   const [moeda, setMoeda] = useState('BRL')
+  const [camada, setCamada] = useState('principal')
   const [extratoFiltro, setExtratoFiltro] = useState('')
   const [catFiltro, setCatFiltro] = useState('')
   const [tipoFiltro, setTipoFiltro] = useState('')
@@ -44,7 +45,7 @@ export default function Bancos({ session, profile }) {
 
   function openModal(c = null) {
     setEdit(c); setBanco(c?.banco || ''); setTipo(c?.tipo || 'corrente')
-    setTitular(c?.titular || profile.papel); setSaldo(c ? String(c.saldo) : ''); setMoeda(c?.moeda || 'BRL')
+    setTitular(c?.titular || profile.papel); setSaldo(c ? String(c.saldo) : ''); setMoeda(c?.moeda || 'BRL'); setCamada(c?.camada || 'principal')
     setModal(true)
   }
 
@@ -52,7 +53,7 @@ export default function Bancos({ session, profile }) {
     e.preventDefault()
     if (!banco.trim()) { alert('Informe o nome do banco'); return }
     setSaving(true)
-    const payload = { user_id: session.user.id, casal_code: profile.casal_code || session.user.id, banco: banco.trim(), tipo, titular, saldo: parseFloat(saldo) || 0, moeda }
+    const payload = { user_id: session.user.id, casal_code: profile.casal_code || session.user.id, banco: banco.trim(), tipo, titular, saldo: parseFloat(saldo) || 0, moeda, camada }
     try {
       if (edit) await supabase.from('contas_banco').update(payload).eq('id', edit.id)
       else await supabase.from('contas_banco').insert(payload)
@@ -85,10 +86,24 @@ export default function Bancos({ session, profile }) {
 
   return (
     <div>
-      {/* Header */}
+      {/* Header com 3 camadas */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
+        {[
+          ['💵 Principal',  contas.filter(b=>!b.camada||b.camada==='principal'), '#178DD1', 'rgba(23,141,209,.08)'],
+          ['🛡 Reserva',    contas.filter(b=>b.camada==='reserva'),               '#1D9E75', 'rgba(29,158,117,.08)'],
+          ['📈 Patrimônio', contas.filter(b=>b.camada==='patrimonio'),            '#C4973A', 'rgba(196,151,58,.08)'],
+        ].map(([label, grupo, cor, bg]) => (
+          <div key={label} style={{ background:bg, borderRadius:12, padding:'12px 14px', border:`0.5px solid ${cor}20` }}>
+            <div style={{ fontSize:11, fontWeight:600, color:cor, marginBottom:4 }}>{label}</div>
+            <div style={{ fontSize:18, fontWeight:600, color:'var(--primary)' }}>{fmt(grupo.reduce((s,b)=>s+b.saldo,0))}</div>
+            <div style={{ fontSize:11, color:'var(--secondary)', marginTop:2 }}>{grupo.length} conta(s)</div>
+          </div>
+        ))}
+      </div>
+
       <div className="row-between" style={{ marginBottom:20 }}>
         <div>
-          <div style={{ fontSize:26, fontWeight:600 }}>{fmt(totalConsolidado)}</div>
+          <div style={{ fontSize:22, fontWeight:600 }}>{fmt(totalConsolidado)}</div>
           <div style={{ fontSize:12, color:'var(--secondary)', marginTop:2 }}>Total consolidado · {contas.length} conta(s)</div>
           <div style={{ display:'flex', gap:14, marginTop:8 }}>
             {totalBRL !== 0 && (
@@ -256,6 +271,30 @@ export default function Bancos({ session, profile }) {
                 <select className="form-select" value={moeda} onChange={e => { setMoeda(e.target.value); setBanco('') }}>
                   {MOEDAS.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Camada financeira</label>
+                <div style={{ display:'flex', gap:8 }}>
+                  {[
+                    ['principal',  '💵 Principal',  'Fluxo do mês'],
+                    ['reserva',    '🛡 Reserva',    'Emergência'],
+                    ['patrimonio', '📈 Patrimônio', 'Investimento'],
+                  ].map(([val, label, desc]) => (
+                    <button key={val} type="button"
+                      onClick={() => setCamada(val)}
+                      style={{
+                        flex:1, padding:'8px 4px', borderRadius:10, cursor:'pointer',
+                        fontFamily:'inherit', textAlign:'center',
+                        background: camada===val ? 'var(--primary)' : 'var(--bg)',
+                        color: camada===val ? '#fff' : 'var(--secondary)',
+                        border: camada===val ? '1px solid var(--primary)' : '0.5px solid var(--border)',
+                        transition:'all .15s',
+                      }}>
+                      <div style={{ fontSize:13 }}>{label}</div>
+                      <div style={{ fontSize:10, opacity:.7, marginTop:2 }}>{desc}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="form-group">
                 <label className="form-label">Banco</label>
