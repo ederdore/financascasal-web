@@ -382,171 +382,149 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
 
   return (
     <div>
-      {/* ── HEADER ── */}
-      <div style={{ background:'linear-gradient(135deg, #3D5A3E 0%, #2D4A2E 100%)', borderRadius:18, padding:'28px 32px', marginBottom:20, color:'#fff', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', top:-60, right:-60, width:300, height:300, background:'radial-gradient(circle,rgba(196,151,58,.15) 0%,transparent 65%)', pointerEvents:'none' }}/>
+      {/* ── HERO REDESIGN ── */}
+      <div style={{ background:'#2D4A2E', borderRadius:20, padding:'24px 28px', marginBottom:16, color:'#fff', position:'relative', overflow:'hidden' }}>
+        {/* Glow dourado */}
+        <div style={{ position:'absolute', top:-80, right:-80, width:280, height:280, background:'radial-gradient(circle,rgba(196,151,58,.18) 0%,transparent 65%)', pointerEvents:'none' }}/>
 
+        {/* Linha 1 — saudação + score anel */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:20 }}>
           <div>
-            <p style={{ fontSize:13, color:'rgba(232,220,200,.65)', marginBottom:6 }}>
+            <div style={{ fontSize:12, color:'rgba(232,220,200,.55)', marginBottom:6, letterSpacing:.3 }}>
               🌿 Bom dia, {nome1}
-            </p>
-            <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:32, fontWeight:600, color:'#fff', letterSpacing:-.5, lineHeight:1.1, marginBottom:4 }}>
-              Seu jardim está<br/>
-              <em style={{ color:'#C4973A', fontStyle:'italic' }}>crescendo.</em>
+            </div>
+            <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:600, color:'#fff', letterSpacing:-.5, lineHeight:1.15, marginBottom:0 }}>
+              {faseJardim.score >= 56 ? 'Seu jardim está' : faseJardim.score >= 26 ? 'Seu jardim está' : 'Seu jardim'}<br/>
+              <em style={{ color:'#C4973A', fontStyle:'italic' }}>
+                {dados.saude >= 71 ? 'florescendo.' : dados.saude >= 41 ? 'crescendo.' : dados.saude >= 26 ? 'brotando.' : 'precisa de atenção.'}
+              </em>
             </h1>
           </div>
-          <div style={{ textAlign:'right' }}>
-            <div style={{ fontSize:10, color:'rgba(232,220,200,.5)', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Saúde do Jardim</div>
-            <div style={{ fontSize:36, fontWeight:700, color: faseJardim.cor || '#DFB86A', lineHeight:1 }}>
-              {dados.saude}%
-            </div>
-            <div style={{ fontSize:11, color:'rgba(232,220,200,.6)', marginTop:4, fontWeight:500 }}>
-              {faseJardim.emoji} {faseJardim.nome}
-            </div>
 
-            {/* Engajamento */}
-            <div style={{ marginTop:8, paddingTop:8, borderTop:'0.5px solid rgba(255,255,255,.1)' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                <span style={{ fontSize:10, color:'rgba(232,220,200,.4)' }}>Engajamento</span>
-                <span style={{ fontSize:10, color:'rgba(232,220,200,.5)' }}>{dados.engajamento}%</span>
+          {/* Score em anel dourado */}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0 }}>
+            <div style={{ position:'relative', width:80, height:80 }}>
+              <svg viewBox="0 0 80 80" width="80" height="80" style={{ position:'absolute', top:0, left:0, transform:'rotate(-90deg)' }}>
+                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(196,151,58,.12)" strokeWidth="4"/>
+                <circle cx="40" cy="40" r="34" fill="none" stroke="#C4973A" strokeWidth="4" strokeLinecap="round"
+                  strokeDasharray="213"
+                  strokeDashoffset={213 - (213 * Math.max(0, dados.saude) / 100)}
+                />
+              </svg>
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ fontSize:18, fontWeight:500, color:'#DFB86A', lineHeight:1 }}>{dados.saude}%</div>
+                <div style={{ fontSize:9, color:'rgba(196,151,58,.5)', marginTop:2, letterSpacing:.3 }}>saúde</div>
               </div>
-              <div style={{ height:3, background:'rgba(255,255,255,.1)', borderRadius:2 }}>
-                <div style={{ height:'100%', width:dados.engajamento+'%', background:'#7EA77F', borderRadius:2 }}/>
+            </div>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.4)', marginTop:6 }}>{faseJardim.emoji} {faseJardim.nome}</div>
+            {/* Engajamento mini */}
+            <div style={{ marginTop:6, width:80 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
+                <span style={{ fontSize:9, color:'rgba(232,220,200,.3)' }}>engajamento</span>
+                <span style={{ fontSize:9, color:'rgba(232,220,200,.4)' }}>{dados.engajamento}%</span>
+              </div>
+              <div style={{ height:2, background:'rgba(255,255,255,.08)', borderRadius:1 }}>
+                <div style={{ height:'100%', width:dados.engajamento+'%', background:'#7EA77F', borderRadius:1 }}/>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Patrimônio */}
-        <div style={{ display:'flex', gap:32, alignItems:'flex-end', flexWrap:'wrap' }}>
+        {/* Linha 2 — 3 camadas financeiras */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:20 }}>
+          <div style={{ background:'rgba(23,141,209,.12)', borderRadius:12, padding:'10px 12px', border:'0.5px solid rgba(23,141,209,.2)' }}>
+            <div style={{ fontSize:9, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>💵 Principal</div>
+            <div style={{ fontSize:16, fontWeight:500, color:'#fff' }}>{fmt(dados.saldoPrincipal || dados.patrimônio)}</div>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.35)', marginTop:2 }}>fluxo do mês</div>
+          </div>
+          <div style={{ background:'rgba(29,158,117,.1)', borderRadius:12, padding:'10px 12px', border:'0.5px solid rgba(29,158,117,.2)' }}>
+            <div style={{ fontSize:9, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>🛡 Reserva</div>
+            <div style={{ fontSize:16, fontWeight:500, color:'#fff' }}>{fmt(dados.reservaAtual || 0)}</div>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.35)', marginTop:2 }}>{dados.pctReserva || 0}% da meta</div>
+          </div>
+          <div style={{ background:'rgba(196,151,58,.1)', borderRadius:12, padding:'10px 12px', border:'0.5px solid rgba(196,151,58,.2)' }}>
+            <div style={{ fontSize:9, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>📈 Patrimônio</div>
+            <div style={{ fontSize:16, fontWeight:500, color:'#DFB86A' }}>{fmt(dados.patrimônio)}</div>
+            <div style={{ fontSize:10, color:'rgba(232,220,200,.35)', marginTop:2 }}>total consolidado</div>
+          </div>
+        </div>
+
+        {/* Linha 3 — saldo + métricas */}
+        <div style={{ display:'flex', gap:28, alignItems:'flex-end', flexWrap:'wrap' }}>
           <div>
-            <div style={{ fontSize:10, color:'rgba(232,220,200,.5)', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Patrimônio atual</div>
-            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:42, fontWeight:600, color:'#fff', letterSpacing:-1, lineHeight:1 }}>
-              {fmt(dados.patrimônio)}
-            </div>
-            <div style={{ fontSize:12, color: dados.saldo>=0?'#7A9E7E':'#E87A6A', marginTop:6 }}>
-              {dados.saldo>=0?'▲':'▼'} {fmt(Math.abs(dados.saldo))} este mês
+            <div style={{ fontSize:9, color:'rgba(232,220,200,.4)', textTransform:'uppercase', letterSpacing:.5, marginBottom:4 }}>Saldo do mês</div>
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:36, fontWeight:600, color: dados.saldo>=0?'#7EA77F':'#E87A6A', letterSpacing:-1, lineHeight:1 }}>
+              {dados.saldo>=0?'+':''}{fmt(dados.saldo)}
             </div>
           </div>
-          <div style={{ display:'flex', gap:24 }}>
-            {[['💰','Receitas',dados.totalRec],['💸','Gastos',dados.totalDesp],['💳','Faturas',dados.faturas]].map(([e,l,v])=>(
+          <div style={{ display:'flex', gap:20, paddingBottom:4 }}>
+            {[['Receitas',dados.totalRec,'rgba(122,158,126,.9)'],['Gastos',dados.totalDesp,'rgba(232,220,200,.6)'],['Faturas',dados.faturas,'rgba(232,158,106,.7)']].map(([l,v,c])=>(
               <div key={l}>
-                <div style={{ fontSize:10, color:'rgba(232,220,200,.45)', marginBottom:4 }}>{e} {l}</div>
-                <div style={{ fontSize:15, fontWeight:600, color:'rgba(232,220,200,.85)' }}>{fmt(v)}</div>
+                <div style={{ fontSize:9, color:'rgba(232,220,200,.35)', marginBottom:3, textTransform:'uppercase', letterSpacing:.3 }}>{l}</div>
+                <div style={{ fontSize:14, fontWeight:500, color:c }}>{fmt(v)}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── VISUAL DO JARDIM ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:16, marginBottom:16 }}>
+      {/* ── JARDIM + DIAGNÓSTICO ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
 
-        {/* Fase visual — Jardim animado */}
-        <div style={{ borderRadius:14, overflow:'hidden', background:'linear-gradient(160deg, #3D5A3E 0%, #2D4A2E 100%)', position:'relative', minHeight:200 }}>
-          <div style={{ padding:'18px 20px 0', position:'relative', zIndex:2 }}>
-            <div style={{ display:'inline-block', background:'rgba(196,151,58,0.25)', color:'#DFB86A', fontSize:11, fontWeight:600, padding:'2px 10px', borderRadius:20, border:'0.5px solid rgba(196,151,58,0.4)', marginBottom:8 }}>
+        {/* Jardim animado */}
+        <div style={{ borderRadius:16, overflow:'hidden', background:'#2D4A2E', position:'relative', minHeight:220 }}>
+          <div style={{ padding:'16px 18px 0', position:'relative', zIndex:2 }}>
+            <div style={{ display:'inline-block', background:'rgba(196,151,58,0.2)', color:'#DFB86A', fontSize:10, fontWeight:600, padding:'2px 10px', borderRadius:20, border:'0.5px solid rgba(196,151,58,0.3)', marginBottom:8 }}>
               {faseJardim.emoji} {faseJardim.nome}
             </div>
-            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:600, color:'#fff', lineHeight:1.3 }}>
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:14, color:'rgba(232,220,200,.75)', lineHeight:1.4, fontStyle:'italic' }}>
               "{faseJardim.msg}"
             </div>
-            {fase && (
-              <div style={{ fontSize:11, color:'rgba(232,220,200,0.5)', marginTop:6 }}>
-                {fase.emoji} Fase financeira: {fase.nome}
-              </div>
-            )}
           </div>
           <JardimSVG score={dados.saude} />
         </div>
 
-        {/* Diagnóstico do jardim */}
-        {dados.saudeBreakdown?.length > 0 && (
-          <div className="card" style={{ marginBottom:16 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-              <div>
-                <div style={{ fontWeight:600, fontSize:14 }}>📋 Diagnóstico do jardim</div>
-                <div style={{ fontSize:12, color:'var(--secondary)', marginTop:2 }}>
-                  O que está impactando sua saúde financeira
-                </div>
-              </div>
-              <div style={{
-                fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:20,
-                background: dados.saude >= 71 ? '#E1F5EE' : dados.saude >= 41 ? '#FFF8EE' : '#FCEBEB',
-                color: dados.saude >= 71 ? 'var(--green)' : dados.saude >= 41 ? 'var(--yellow)' : 'var(--red)',
-              }}>
-                {faseJardim.emoji} {faseJardim.nome}
-              </div>
+        {/* Diagnóstico compacto */}
+        <div style={{ background:'var(--card)', border:'0.5px solid var(--border)', borderRadius:16, padding:16 }}>
+          <div style={{ fontSize:11, fontWeight:600, color:'var(--secondary)', textTransform:'uppercase', letterSpacing:.5, marginBottom:12 }}>
+            Diagnóstico financeiro
+          </div>
+          {/* Barra total */}
+          <div style={{ marginBottom:14 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:5 }}>
+              <span style={{ color:'var(--secondary)' }}>Saúde real</span>
+              <span style={{ fontWeight:600, color: dados.saude>=71?'var(--green)':dados.saude>=41?'var(--yellow)':'var(--red)' }}>{dados.saude}/100</span>
             </div>
-
-            {/* Barra de progresso total */}
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:6 }}>
-                <span style={{ color:'var(--secondary)' }}>Saúde financeira real</span>
-                <span style={{ fontWeight:700, color: dados.saude >= 71?'var(--green)':dados.saude>=41?'var(--yellow)':'var(--red)' }}>
-                  {dados.saude}/100
-                </span>
-              </div>
-              <div style={{ height:8, background:'var(--border)', borderRadius:4, overflow:'hidden' }}>
-                <div style={{
-                  height:'100%',
-                  width: dados.saude + '%',
-                  background: dados.saude>=71?'var(--green)':dados.saude>=41?'var(--yellow)':'var(--red)',
-                  borderRadius:4, transition:'width .6s'
-                }}/>
-              </div>
-            </div>
-
-            {/* Itens do breakdown */}
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              {dados.saudeBreakdown.map((item, i) => (
-                <div key={i}>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <div style={{
-                        width:24, height:24, borderRadius:6, flexShrink:0,
-                        display:'flex', alignItems:'center', justifyContent:'center', fontSize:12,
-                        background: item.status==='ok'?'#E1F5EE':item.status==='atencao'?'#FFF8EE':'#FCEBEB',
-                      }}>
-                        {item.status==='ok'?'✅':item.status==='atencao'?'⚠️':'❌'}
-                      </div>
-                      <div>
-                        <div style={{ fontSize:13, fontWeight:500 }}>{item.label}</div>
-                        <div style={{ fontSize:11, color:'var(--secondary)', marginTop:1 }}>{item.detalhe}</div>
-                      </div>
-                    </div>
-                    <div style={{ textAlign:'right', flexShrink:0, marginLeft:8 }}>
-                      <span style={{
-                        fontSize:12, fontWeight:700,
-                        color: item.status==='ok'?'var(--green)':item.status==='atencao'?'var(--yellow)':'var(--red)'
-                      }}>
-                        {item.pts}
-                      </span>
-                      <span style={{ fontSize:11, color:'var(--secondary)' }}>/{item.max}</span>
-                    </div>
-                  </div>
-                  {/* Mini barra por item */}
-                  <div style={{ height:3, background:'var(--border)', borderRadius:2, marginLeft:32, overflow:'hidden' }}>
-                    <div style={{
-                      height:'100%',
-                      width: item.max > 0 ? (item.pts/item.max*100)+'%' : '0%',
-                      background: item.status==='ok'?'var(--green)':item.status==='atencao'?'var(--yellow)':'var(--red)',
-                      borderRadius:2, transition:'width .4s'
-                    }}/>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Mensagem motivadora baseada no estágio */}
-            <div style={{ marginTop:16, padding:12, background:'var(--bg)', borderRadius:10, borderLeft:'3px solid var(--eden-green)' }}>
-              <div style={{ fontSize:12, color:'var(--secondary)', fontStyle:'italic' }}>
-                "{faseJardim.msg}"
-              </div>
+            <div style={{ height:6, background:'var(--border)', borderRadius:3, overflow:'hidden' }}>
+              <div style={{ height:'100%', width:dados.saude+'%', background: dados.saude>=71?'var(--green)':dados.saude>=41?'var(--yellow)':'var(--red)', borderRadius:3, transition:'width .5s' }}/>
             </div>
           </div>
-        )}
+          {/* Items */}
+          {(dados.saudeBreakdown||[]).map((item,i) => (
+            <div key={i} style={{ marginBottom:10 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+                  <div style={{ width:22, height:22, borderRadius:6, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11,
+                    background: item.status==='ok'?'#E1F5EE':item.status==='atencao'?'#FFF8EE':'#FCEBEB' }}>
+                    {item.status==='ok'?'✅':item.status==='atencao'?'⚠️':'❌'}
+                  </div>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:500, color:'var(--primary)' }}>{item.label}</div>
+                    <div style={{ fontSize:10, color:'var(--secondary)', marginTop:1 }}>{item.detalhe}</div>
+                  </div>
+                </div>
+                <span style={{ fontSize:11, fontWeight:600, flexShrink:0, marginLeft:6,
+                  color: item.status==='ok'?'var(--green)':item.status==='atencao'?'var(--yellow)':'var(--red)' }}>
+                  {item.pts}/{item.max}
+                </span>
+              </div>
+              <div style={{ height:2, background:'var(--border)', borderRadius:1, marginLeft:29, overflow:'hidden' }}>
+                <div style={{ height:'100%', width:item.max>0?(item.pts/item.max*100)+'%':'0%',
+                  background: item.status==='ok'?'var(--green)':item.status==='atencao'?'var(--yellow)':'var(--red)', borderRadius:1 }}/>
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* Broto IA */}
         <div className="card" style={{ background:'#2C1F14', border:'none', color:'#fff' }}>
