@@ -402,29 +402,36 @@ Gere 2-3 mensagens curtas e motivadoras sobre o jardim financeiro deste casal. S
           </div>
 
           {/* Score em anel dourado */}
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0 }}>
-            <div style={{ position:'relative', width:80, height:80 }}>
-              <svg viewBox="0 0 80 80" width="80" height="80" style={{ position:'absolute', top:0, left:0, transform:'rotate(-90deg)' }}>
-                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(196,151,58,.12)" strokeWidth="4"/>
-                <circle cx="40" cy="40" r="34" fill="none" stroke="#C4973A" strokeWidth="4" strokeLinecap="round"
-                  strokeDasharray="213"
-                  strokeDashoffset={213 - (213 * Math.max(0, dados.saude) / 100)}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0, gap:10 }}>
+            {/* Anel maior */}
+            <div style={{ position:'relative', width:108, height:108 }}>
+              <svg viewBox="0 0 108 108" width="108" height="108" style={{ position:'absolute', top:0, left:0, transform:'rotate(-90deg)' }}>
+                <circle cx="54" cy="54" r="46" fill="none" stroke="rgba(196,151,58,.1)" strokeWidth="6"/>
+                <circle cx="54" cy="54" r="46" fill="none" stroke="#C4973A" strokeWidth="6" strokeLinecap="round"
+                  strokeDasharray="289"
+                  strokeDashoffset={289 - (289 * Math.max(0, dados.saude) / 100)}
+                  style={{ transition:'stroke-dashoffset .6s ease' }}
                 />
               </svg>
               <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-                <div style={{ fontSize:20, fontWeight:500, color:'#DFB86A', lineHeight:1 }}>{dados.saude}%</div>
-                <div style={{ fontSize:10, color:'rgba(196,151,58,.5)', marginTop:2, letterSpacing:.3 }}>saúde</div>
+                <div style={{ fontSize:26, fontWeight:600, color:'#DFB86A', lineHeight:1, letterSpacing:-.5 }}>{dados.saude}%</div>
+                <div style={{ fontSize:10, color:'rgba(196,151,58,.5)', marginTop:3, letterSpacing:.5, textTransform:'uppercase' }}>saúde</div>
               </div>
             </div>
-            <div style={{ fontSize:11, color:'rgba(232,220,200,.4)', marginTop:6 }}>{faseJardim.emoji} {faseJardim.nome}</div>
-            {/* Engajamento mini */}
-            <div style={{ marginTop:6, width:80 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
-                <span style={{ fontSize:9, color:'rgba(232,220,200,.3)' }}>engajamento</span>
-                <span style={{ fontSize:9, color:'rgba(232,220,200,.4)' }}>{dados.engajamento}%</span>
+
+            {/* Fase */}
+            <div style={{ fontSize:11, color:'rgba(232,220,200,.5)', textAlign:'center', lineHeight:1.4 }}>
+              {faseJardim.emoji} {faseJardim.nome}
+            </div>
+
+            {/* Engajamento com mais destaque */}
+            <div style={{ width:108, background:'rgba(255,255,255,.06)', borderRadius:10, padding:'8px 10px', border:'0.5px solid rgba(255,255,255,.08)' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:5 }}>
+                <span style={{ fontSize:10, color:'rgba(232,220,200,.45)', textTransform:'uppercase', letterSpacing:.4 }}>engaj.</span>
+                <span style={{ fontSize:12, fontWeight:600, color:'#7EA77F' }}>{dados.engajamento}%</span>
               </div>
-              <div style={{ height:2, background:'rgba(255,255,255,.08)', borderRadius:1 }}>
-                <div style={{ height:'100%', width:dados.engajamento+'%', background:'#7EA77F', borderRadius:1 }}/>
+              <div style={{ height:4, background:'rgba(255,255,255,.08)', borderRadius:2, overflow:'hidden' }}>
+                <div style={{ height:'100%', width:dados.engajamento+'%', background:'linear-gradient(90deg,#5A8A4A,#7EA77F)', borderRadius:2, transition:'width .5s' }}/>
               </div>
             </div>
           </div>
