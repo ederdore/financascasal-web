@@ -26,7 +26,7 @@ function formatarMoeda(valor) {
  *   notas: [{ id, data, tipo, descricao, decisao }],
  * }
  */
-export default function FichaAtivo({ ativo, aoRegistrarNota, aoRegistrarDividendo, aoRegistrarRevisaoTese, aoAnalisarIA, aoAnalisarPdf }) {
+export default function FichaAtivo({ ativo, aoRegistrarNota, aoRegistrarDividendo, aoRegistrarRevisaoTese, aoAnalisarIA, aoAnalisarPdf, aoSugerirScoresTese }) {
   const [painelAberto, setPainelAberto] = useState(null); // null | 'dividendo' | 'tese'
 
   if (!ativo) return null;
@@ -68,6 +68,7 @@ export default function FichaAtivo({ ativo, aoRegistrarNota, aoRegistrarDividend
           statusAtual={ativo.status}
           aoRegistrar={async (revisao) => { const r = await aoRegistrarRevisaoTese?.(ativo.ticker, revisao); if (!r?.erro) setPainelAberto(null); return r; }}
           aoCancelar={() => setPainelAberto(null)}
+          aoSugerirComIA={aoSugerirScoresTese}
         />
       )}
 

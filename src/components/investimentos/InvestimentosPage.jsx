@@ -13,7 +13,7 @@ export default function InvestimentosPage({ casalCode }) {
   const {
     dados, ativos, loading, erro,
     registrarNota, registrarDividendo, registrarRevisaoTese,
-    sincronizarDividendos, analisarComIA, analisarPdf, recarregar,
+    sincronizarDividendos, analisarComIA, analisarPdf, sugerirScoresTese, recarregar,
   } = useInvestimentos(casalCode);
   const [sincronizando, setSincronizando] = useState(false);
   const [tickerSelecionado, setTickerSelecionado] = useState(null);
@@ -59,6 +59,7 @@ export default function InvestimentosPage({ casalCode }) {
           aoRegistrarRevisaoTese={registrarRevisaoTese}
           aoAnalisarIA={analisarComIA}
           aoAnalisarPdf={analisarPdf}
+          aoSugerirScoresTese={sugerirScoresTese}
         />
       </div>
     );

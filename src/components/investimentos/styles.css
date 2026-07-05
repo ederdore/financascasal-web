@@ -4,6 +4,7 @@
    paleta oliva/terracota/creme). Não introduz cores ou fontes novas.
    ============================================================ */
 
+:root,
 .ji-root {
   --ji-verde-escuro: #3E6344;
   --ji-verde-claro: #7EA77F;
@@ -13,7 +14,9 @@
   --ji-texto: #2A2A28;
   --ji-texto-suave: #6B6B66;
   --ji-borda: #E4DDD0;
+}
 
+.ji-root {
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--ji-texto);
   background: var(--ji-creme);

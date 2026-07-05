@@ -161,7 +161,7 @@ export default function Dashboard({ dados, aoAbrirAtivo }) {
               {dados.ativosForaDoPeso.map((a) => {
                 const diff = a.pesoAtual - a.pesoAlvo;
                 return (
-                  <tr key={a.ticker}>
+                  <tr key={a.ticker} onClick={() => aoAbrirAtivo?.(a.ticker)} style={{ cursor: aoAbrirAtivo ? 'pointer' : 'default' }}>
                     <td className="ji-ticker">{a.ticker}</td>
                     <td>{formatarPercentual(a.pesoAtual)}</td>
                     <td>{formatarPercentual(a.pesoAlvo)}</td>

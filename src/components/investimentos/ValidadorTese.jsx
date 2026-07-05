@@ -63,20 +63,55 @@ function calcularPreview(scores) {
 /**
  * Validador de tese (seções 11 e 12).
  * `assetType` decide qual checklist mostrar (fii ou ação/demais).
+ * `aoSugerirComIA(ticker, assetType, pdfBase64)` — opcional — pede à IA uma
+ * sugestão dos 6 scores, que pré-popula o formulário pra revisão humana.
  */
-export default function ValidadorTese({ ticker, assetType, statusAtual, aoRegistrar, aoCancelar }) {
+export default function ValidadorTese({ ticker, assetType, statusAtual, aoRegistrar, aoCancelar, aoSugerirComIA }) {
   const checklist = assetType === 'fii' ? CHECKLIST_FII : CHECKLIST_ACAO;
   const [marcados, setMarcados] = useState({});
   const [scores, setScores] = useState(VAZIO);
   const [conclusao, setConclusao] = useState('');
   const [status, setStatus] = useState(statusAtual || 'ativo');
   const [salvando, setSalvando] = useState(false);
+  const [sugerindo, setSugerindo] = useState(false);
   const [erro, setErro] = useState(null);
 
   const scorePreview = calcularPreview(scores);
 
   function toggleItem(item) {
     setMarcados((m) => ({ ...m, [item]: !m[item] }));
+  }
+
+  async function aplicarSugestao(pdfBase64) {
+    setSugerindo(true);
+    setErro(null);
+    const resultado = await aoSugerirComIA?.(ticker, assetType, pdfBase64);
+    setSugerindo(false);
+    if (resultado?.erro) { setErro(resultado.erro); return; }
+
+    const s = resultado.scores;
+    setScores({
+      managementScore: s.management_score ?? '',
+      resultsScore: s.results_score ?? '',
+      dividendsScore: s.dividends_score ?? '',
+      financialHealthScore: s.financial_health_score ?? '',
+      valuationScore: s.valuation_score ?? '',
+      sectorScore: s.sector_score ?? '',
+    });
+    if (s.conclusion) setConclusao(s.conclusion);
+  }
+
+  async function handleArquivoPdf(e) {
+    const arquivo = e.target.files?.[0];
+    if (!arquivo) return;
+    const base64 = await new Promise((resolve, reject) => {
+      const leitor = new FileReader();
+      leitor.onload = () => resolve(leitor.result.split(',')[1]);
+      leitor.onerror = reject;
+      leitor.readAsDataURL(arquivo);
+    });
+    await aplicarSugestao(base64);
+    e.target.value = '';
   }
 
   async function handleSubmit(e) {
@@ -123,6 +158,24 @@ export default function ValidadorTese({ ticker, assetType, statusAtual, aoRegist
           ))}
         </div>
       </div>
+
+      {aoSugerirComIA && (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+          <button
+            type="button"
+            className="ji-botao-primario"
+            style={{ padding: '6px 14px' }}
+            onClick={() => aplicarSugestao(null)}
+            disabled={sugerindo}
+          >
+            {sugerindo ? 'Sugerindo...' : '✨ Sugerir scores via dados públicos'}
+          </button>
+          <label className="ji-botao-primario" style={{ padding: '6px 14px', background: '#C89A4A', cursor: 'pointer' }}>
+            {sugerindo ? 'Sugerindo...' : '✨ Sugerir scores via PDF'}
+            <input type="file" accept="application/pdf" onChange={handleArquivoPdf} disabled={sugerindo} style={{ display: 'none' }} />
+          </label>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {erro && <div style={{ color: '#B3402F', fontSize: 14 }}>{erro}</div>}

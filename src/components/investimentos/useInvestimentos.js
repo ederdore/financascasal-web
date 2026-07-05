@@ -326,5 +326,26 @@ export function useInvestimentos(casalCode) {
     }
   }, []);
 
-  return { ...estado, registrarNota, registrarDividendo, registrarRevisaoTese, sincronizarDividendos, analisarComIA, analisarPdf, recarregar: carregar };
+  /**
+   * Pede à IA uma sugestão dos 6 scores da tese (baseada em dados públicos
+   * ou num PDF enviado). Só sugere — quem decide e salva é sempre o usuário,
+   * no formulário do Validador de Tese.
+   */
+  const sugerirScoresTese = useCallback(async (ticker, assetType, pdfBase64) => {
+    try {
+      const resp = await fetch('https://financascasal-backend.vercel.app/api/investimentos?action=sugerir-scores-tese', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker, assetType, pdfBase64 }),
+      });
+      const resultado = await resp.json();
+      if (!resp.ok) return { erro: resultado.erro || 'Erro ao sugerir scores.' };
+      return resultado; // { scores }
+    } catch (e) {
+      console.error('Erro ao sugerir scores da tese:', e);
+      return { erro: e.message };
+    }
+  }, []);
+
+  return { ...estado, registrarNota, registrarDividendo, registrarRevisaoTese, sincronizarDividendos, analisarComIA, analisarPdf, sugerirScoresTese, recarregar: carregar };
 }
