@@ -11,6 +11,7 @@ import Broto from './pages/Broto.jsx'
 import Conquistas from './pages/Conquistas.jsx'
 import Configuracoes from './pages/Configuracoes.jsx'
 import Admin from './pages/Admin.jsx'
+import Investimentos from './pages/Investimentos.jsx'
 import { useAutoLancarRecorrencias } from './components/AutoLancarRecorrencias.jsx'
 import { useConquistas, CelebracaoModal } from './components/Conquistas.jsx'
 import { useFaseAtual, FaseBadge } from './components/FasesFinanceiras.jsx'
@@ -31,6 +32,13 @@ const ICONS = {
     <rect x="8.75" y="8" width="2.5" height="6"/>
     <rect x="13.5" y="8" width="2.5" height="6"/>
     <line x1="2" y1="17" x2="18" y2="17"/>
+  </svg>`,
+  investimentos: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+    <path d="M6 15l1 3h6l1-3"/>
+    <path d="M5.5 15h9"/>
+    <path d="M10 15V9"/>
+    <path d="M10 12c-2.5 0-4-1.5-4-4 2.5 0 4 1 4 4z"/>
+    <path d="M10 10c2.3 0 3.7-1.5 3.7-3.7-2 0-3.7 1-3.7 3.7z"/>
   </svg>`,
   metas: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
     <circle cx="10" cy="10" r="7.5"/>
@@ -75,6 +83,7 @@ const ICONS = {
 const TABS = [
   { id: 'jardim',       icon: 'jardim',       label: '🏡 Jardim',        section: 'principal' },
   { id: 'patrimonio',   icon: 'patrimonio',   label: '🌳 Patrimônio',     section: 'principal' },
+  { id: 'investimentos',icon: 'investimentos',label: '🌱 Investimentos',  section: 'principal' },
   { id: 'metas',        icon: 'metas',        label: '🎯 Metas',          section: 'principal' },
   { id: 'contas',       icon: 'contas',       label: '💳 Contas',         section: 'gestao' },
   { id: 'planejamento', icon: 'planejamento', label: '📊 Planejamento',   section: 'gestao' },
@@ -202,6 +211,7 @@ export default function App() {
   const pages = {
     jardim:       Jardim,
     patrimonio:   Patrimonio,
+    investimentos:Investimentos,
     metas:        Metas,
     contas:       Contas,
     planejamento: Planejamento,

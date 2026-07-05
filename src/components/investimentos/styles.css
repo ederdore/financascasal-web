@@ -1,0 +1,280 @@
+/* ============================================================
+   Éden — Jardim de Investimentos
+   Tokens seguem a identidade já definida (Playfair Display + Inter,
+   paleta oliva/terracota/creme). Não introduz cores ou fontes novas.
+   ============================================================ */
+
+.ji-root {
+  --ji-verde-escuro: #3E6344;
+  --ji-verde-claro: #7EA77F;
+  --ji-dourado: #C89A4A;
+  --ji-creme: #F4EFE7;
+  --ji-terracota: #D97C6C;
+  --ji-texto: #2A2A28;
+  --ji-texto-suave: #6B6B66;
+  --ji-borda: #E4DDD0;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ji-texto);
+  background: var(--ji-creme);
+}
+
+.ji-root h1,
+.ji-root h2,
+.ji-root h3,
+.ji-root .ji-titulo {
+  font-family: 'Playfair Display', serif;
+  color: var(--ji-verde-escuro);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ---------- Layout geral ---------- */
+.ji-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ji-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ji-header h1 {
+  font-size: 28px;
+}
+
+.ji-subtitulo {
+  color: var(--ji-texto-suave);
+  font-size: 14px;
+}
+
+/* ---------- Cards de indicadores ---------- */
+.ji-grid-indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.ji-card {
+  background: #fff;
+  border: 1px solid var(--ji-borda);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.ji-card-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ji-texto-suave);
+  margin-bottom: 6px;
+}
+
+.ji-card-valor {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--ji-verde-escuro);
+}
+
+.ji-card-valor.negativo {
+  color: var(--ji-terracota);
+}
+
+.ji-card-meta {
+  margin-top: 10px;
+}
+
+.ji-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ji-borda);
+  overflow: hidden;
+}
+
+.ji-progress-fill {
+  height: 100%;
+  background: var(--ji-dourado);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+/* ---------- Seções ---------- */
+.ji-secao {
+  background: #fff;
+  border: 1px solid var(--ji-borda);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.ji-secao-titulo {
+  font-size: 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ji-grid-duas-colunas {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 720px) {
+  .ji-grid-duas-colunas {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Lista de ativos ---------- */
+.ji-tabela-ativos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ji-tabela-ativos th {
+  text-align: left;
+  color: var(--ji-texto-suave);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ji-borda);
+}
+
+.ji-tabela-ativos td {
+  padding: 10px;
+  border-bottom: 1px solid var(--ji-borda);
+}
+
+.ji-tabela-ativos tr:last-child td {
+  border-bottom: none;
+}
+
+.ji-ticker {
+  font-weight: 600;
+  color: var(--ji-verde-escuro);
+}
+
+.ji-peso-diff {
+  font-size: 12px;
+}
+
+.ji-peso-diff.acima {
+  color: var(--ji-terracota);
+}
+
+.ji-peso-diff.abaixo {
+  color: var(--ji-verde-claro);
+}
+
+/* ---------- Badge de status/score ---------- */
+.ji-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ji-badge.excelente { background: #E7F1E5; color: var(--ji-verde-escuro); }
+.ji-badge.bom { background: #F0EEE0; color: #7A6B2E; }
+.ji-badge.atencao { background: #FBE9DE; color: #A85B2E; }
+.ji-badge.revisar { background: #FBE3DF; color: #B3402F; }
+
+.ji-badge.status-ativo { background: #E7F1E5; color: var(--ji-verde-escuro); }
+.ji-badge.status-em_observacao { background: #F0EEE0; color: #7A6B2E; }
+.ji-badge.status-tese_rompida { background: #FBE3DF; color: #B3402F; }
+.ji-badge.status-encerrado { background: #ECECEA; color: var(--ji-texto-suave); }
+
+/* ---------- Diário de investimento ---------- */
+.ji-diario-item {
+  border-left: 3px solid var(--ji-verde-claro);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: var(--ji-creme);
+  border-radius: 0 10px 10px 0;
+}
+
+.ji-diario-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ji-texto-suave);
+  margin-bottom: 4px;
+}
+
+.ji-diario-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ji-diario-form select,
+.ji-diario-form textarea {
+  font-family: 'Inter', sans-serif;
+  border: 1px solid var(--ji-borda);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  background: #fff;
+}
+
+/* ---------- Inputs de formulário (cadastro de ativo) ---------- */
+.ji-root input,
+.ji-root select,
+.ji-root textarea {
+  font-family: 'Inter', sans-serif;
+  border: 1px solid var(--ji-borda);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  background: #fff;
+  color: var(--ji-texto);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ji-root input:focus,
+.ji-root select:focus,
+.ji-root textarea:focus {
+  outline: none;
+  border-color: var(--ji-verde-claro);
+}
+
+.ji-botao-primario {
+  align-self: flex-start;
+  background: var(--ji-verde-escuro);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ji-botao-primario:hover {
+  background: #345338;
+}
+
+/* ---------- Vazio ---------- */
+.ji-vazio {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ji-texto-suave);
+  font-size: 14px;
+}
