@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../../supabase.js'; // AJUSTE para o caminho real do seu client
+import { supabase } from '../../supabase.js';
 import './styles.css';
 
 const TIPOS_ATIVO = [

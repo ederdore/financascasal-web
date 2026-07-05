@@ -1,5 +1,6 @@
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import SproutIcon from './icons/SproutIcon';
+import AlertasPainel from './AlertasPainel';
 import './styles.css';
 
 const CORES_SETOR = ['#3E6344', '#7EA77F', '#C89A4A', '#D97C6C', '#A8B89A', '#8C6A4E'];
@@ -54,6 +55,8 @@ export default function Dashboard({ dados, aoAbrirAtivo }) {
         </div>
         <span className="ji-subtitulo">Não é sobre prever o mercado. É sobre acompanhar, validar e cultivar com disciplina.</span>
       </div>
+
+      <AlertasPainel alertas={dados.alertas} aoAbrirAtivo={aoAbrirAtivo} />
 
       {/* Indicadores principais */}
       <div className="ji-grid-indicadores">

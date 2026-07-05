@@ -131,3 +131,123 @@ export function revisaoMaisRecente(revisoes = []) {
   if (!revisoes.length) return null;
   return [...revisoes].sort((a, b) => new Date(b.review_date) - new Date(a.review_date))[0];
 }
+
+/**
+ * Pega a segunda revisão mais recente (para comparar score atual vs anterior).
+ */
+export function segundaRevisaoMaisRecente(revisoes = []) {
+  if (revisoes.length < 2) return null;
+  return [...revisoes].sort((a, b) => new Date(b.review_date) - new Date(a.review_date))[1];
+}
+
+function diferencaEmMeses(dataAntiga, dataNova) {
+  return (dataNova.getFullYear() - dataAntiga.getFullYear()) * 12 + (dataNova.getMonth() - dataAntiga.getMonth());
+}
+
+/**
+ * Alertas (seção 13). Cobre 8 dos 10 tipos listados no documento —
+ * "P/VP muito acima da média" e "novas emissões" não têm campo próprio
+ * no schema atual (só entram como texto na tese/diário), então não são
+ * calculados automaticamente aqui.
+ *
+ * Recebe os ativos já montados (com sector, pesoAtual, revisoes brutas
+ * e historicoDividendos) e o patrimônio total, e devolve uma lista de
+ * alertas prontos para exibir.
+ */
+const LIMITE_PESO_PP = 1;
+const LIMITE_CONCENTRACAO_ATIVO = 20;
+const LIMITE_CONCENTRACAO_SETOR = 30;
+const MESES_SEM_REVISAO = 6;
+const MESES_SEM_DIVIDENDO = 3;
+const QUEDA_DIVIDENDO_PCT = 0.30; // queda de 30%+ vs média das 3 anteriores é "relevante"
+
+export function calcularAlertas(ativos = [], patrimonioTotal = 0) {
+  const alertas = [];
+
+  const somaPorSetor = {};
+  for (const a of ativos) {
+    const setor = a.sector || 'Sem setor';
+    somaPorSetor[setor] = (somaPorSetor[setor] || 0) + (a.valorAtual || 0);
+  }
+
+  for (const a of ativos) {
+    // peso fora do alvo
+    if (a.targetWeight) {
+      const diffPeso = (a.pesoAtual ?? 0) - a.targetWeight;
+      if (diffPeso > LIMITE_PESO_PP) {
+        alertas.push({ tipo: 'peso_acima', ticker: a.ticker, severidade: 'atencao', mensagem: `${a.ticker} está ${diffPeso.toFixed(1)}pp acima do peso alvo.` });
+      } else if (diffPeso < -LIMITE_PESO_PP) {
+        alertas.push({ tipo: 'peso_abaixo', ticker: a.ticker, severidade: 'info', mensagem: `${a.ticker} está ${Math.abs(diffPeso).toFixed(1)}pp abaixo do peso alvo.` });
+      }
+    }
+
+    // concentração excessiva em um ativo
+    if ((a.pesoAtual ?? 0) > LIMITE_CONCENTRACAO_ATIVO) {
+      alertas.push({ tipo: 'concentracao_ativo', ticker: a.ticker, severidade: 'alerta', mensagem: `${a.ticker} representa ${a.pesoAtual.toFixed(1)}% da carteira — concentração alta em um único ativo.` });
+    }
+
+    // status do ativo
+    if (a.status === 'em_observacao') {
+      alertas.push({ tipo: 'em_observacao', ticker: a.ticker, severidade: 'atencao', mensagem: `${a.ticker} está marcado como "em observação".` });
+    }
+    if (a.status === 'tese_rompida') {
+      alertas.push({ tipo: 'tese_rompida', ticker: a.ticker, severidade: 'alerta', mensagem: `${a.ticker} está com a tese marcada como rompida.` });
+    }
+
+    // dividendos zerados / queda relevante
+    if (['fii', 'acao'].includes(a.assetType) && a.quantidade > 0) {
+      const divs = [...(a.historicoDividendos || [])].sort((x, y) => new Date(y.data) - new Date(x.data));
+      const ultimoDiv = divs[0];
+      const mesesDesdeUltimo = ultimoDiv ? diferencaEmMeses(new Date(ultimoDiv.data), new Date()) : null;
+
+      if (!ultimoDiv || mesesDesdeUltimo >= MESES_SEM_DIVIDENDO) {
+        alertas.push({
+          tipo: 'dividendo_zerado',
+          ticker: a.ticker,
+          severidade: 'alerta',
+          mensagem: ultimoDiv
+            ? `${a.ticker} está sem receber dividendos há ${mesesDesdeUltimo} meses.`
+            : `${a.ticker} ainda não teve nenhum dividendo registrado.`,
+        });
+      } else if (divs.length >= 4) {
+        const media3Anteriores = divs.slice(1, 4).reduce((s, d) => s + Number(d.valorTotal), 0) / 3;
+        const quedaPct = media3Anteriores > 0 ? 1 - Number(ultimoDiv.valorTotal) / media3Anteriores : 0;
+        if (quedaPct >= QUEDA_DIVIDENDO_PCT) {
+          alertas.push({ tipo: 'queda_dividendo', ticker: a.ticker, severidade: 'atencao', mensagem: `${a.ticker} teve queda de ${Math.round(quedaPct * 100)}% no último dividendo vs. média recente.` });
+        }
+      }
+    }
+
+    // tese sem revisão / score em queda
+    const revisoesOrdenadas = [...(a.revisoes || [])].sort((x, y) => new Date(y.review_date) - new Date(x.review_date));
+    const ultimaRevisao = revisoesOrdenadas[0];
+    const mesesSemRevisao = ultimaRevisao ? diferencaEmMeses(new Date(ultimaRevisao.review_date), new Date()) : Infinity;
+
+    if (mesesSemRevisao >= MESES_SEM_REVISAO) {
+      alertas.push({
+        tipo: 'tese_sem_revisao',
+        ticker: a.ticker,
+        severidade: 'atencao',
+        mensagem: ultimaRevisao ? `${a.ticker} não tem revisão de tese há ${mesesSemRevisao} meses.` : `${a.ticker} nunca teve uma revisão de tese registrada.`,
+      });
+    }
+
+    if (revisoesOrdenadas.length >= 2) {
+      const scoreAtual = calcularScore(revisoesOrdenadas[0]);
+      const scoreAnterior = calcularScore(revisoesOrdenadas[1]);
+      if (scoreAtual != null && scoreAnterior != null && scoreAtual < scoreAnterior - 5) {
+        alertas.push({ tipo: 'score_em_queda', ticker: a.ticker, severidade: 'atencao', mensagem: `${a.ticker} teve o score caindo de ${scoreAnterior.toFixed(0)} para ${scoreAtual.toFixed(0)}.` });
+      }
+    }
+  }
+
+  // concentração excessiva em um setor
+  for (const [setor, valor] of Object.entries(somaPorSetor)) {
+    const pct = patrimonioTotal > 0 ? (valor / patrimonioTotal) * 100 : 0;
+    if (pct > LIMITE_CONCENTRACAO_SETOR) {
+      alertas.push({ tipo: 'concentracao_setor', severidade: 'alerta', mensagem: `Setor "${setor}" representa ${pct.toFixed(1)}% da carteira — concentração alta.` });
+    }
+  }
+
+  return alertas;
+}

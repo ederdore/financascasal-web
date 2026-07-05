@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import { ScoreBadge, StatusBadge } from './InvestmentScoreBadge';
 import DiarioInvestimento from './DiarioInvestimento';
+import RegistrarDividendo from './RegistrarDividendo';
+import ValidadorTese from './ValidadorTese';
+import AnaliseIA from './AnaliseIA';
 import './styles.css';
 
 function formatarMoeda(valor) {
@@ -22,7 +26,9 @@ function formatarMoeda(valor) {
  *   notas: [{ id, data, tipo, descricao, decisao }],
  * }
  */
-export default function FichaAtivo({ ativo, aoRegistrarNota }) {
+export default function FichaAtivo({ ativo, aoRegistrarNota, aoRegistrarDividendo, aoRegistrarRevisaoTese, aoAnalisarIA, aoAnalisarPdf }) {
+  const [painelAberto, setPainelAberto] = useState(null); // null | 'dividendo' | 'tese'
+
   if (!ativo) return null;
 
   const diffPeso = (ativo.pesoAtual ?? 0) - (ativo.targetWeight ?? 0);
@@ -34,11 +40,36 @@ export default function FichaAtivo({ ativo, aoRegistrarNota }) {
           <h1>{ativo.ticker}</h1>
           <span className="ji-subtitulo">{ativo.name}</span>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <StatusBadge status={ativo.status} />
           <ScoreBadge score={ativo.score} />
+          <button className="ji-botao-primario" style={{ padding: '6px 14px' }} onClick={() => setPainelAberto(painelAberto === 'dividendo' ? null : 'dividendo')}>
+            + Dividendo
+          </button>
+          <button className="ji-botao-primario" style={{ padding: '6px 14px', background: '#C89A4A' }} onClick={() => setPainelAberto(painelAberto === 'tese' ? null : 'tese')}>
+            Revisar tese
+          </button>
         </div>
       </div>
+
+      {painelAberto === 'dividendo' && (
+        <RegistrarDividendo
+          ticker={ativo.ticker}
+          quantidadeAtual={ativo.quantidade}
+          aoRegistrar={async (dividendo) => { const r = await aoRegistrarDividendo?.(ativo.ticker, dividendo); if (!r?.erro) setPainelAberto(null); return r; }}
+          aoCancelar={() => setPainelAberto(null)}
+        />
+      )}
+
+      {painelAberto === 'tese' && (
+        <ValidadorTese
+          ticker={ativo.ticker}
+          assetType={ativo.assetType}
+          statusAtual={ativo.status}
+          aoRegistrar={async (revisao) => { const r = await aoRegistrarRevisaoTese?.(ativo.ticker, revisao); if (!r?.erro) setPainelAberto(null); return r; }}
+          aoCancelar={() => setPainelAberto(null)}
+        />
+      )}
 
       <div className="ji-grid-indicadores">
         <Cartao label="Quantidade" valor={ativo.quantidade} />
@@ -82,6 +113,13 @@ export default function FichaAtivo({ ativo, aoRegistrarNota }) {
           <TabelaHistoricoDividendos itens={ativo.historicoDividendos} />
         </div>
       </div>
+
+      <div className="ji-secao">
+        <div className="ji-secao-titulo">Histórico de avaliações</div>
+        <TabelaHistoricoRevisoes itens={ativo.historicoRevisoes} />
+      </div>
+
+      <AnaliseIA ticker={ativo.ticker} assetType={ativo.assetType} aoAnalisar={aoAnalisarIA} aoAnalisarPdf={aoAnalisarPdf} />
 
       <div className="ji-secao">
         <div className="ji-secao-titulo">Diário de investimento</div>
@@ -130,6 +168,27 @@ function TabelaHistoricoDividendos({ itens }) {
             <td>{new Date(d.data).toLocaleDateString('pt-BR')}</td>
             <td>{d.tipo}</td>
             <td>{formatarMoeda(d.valorTotal)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+const STATUS_LABEL = { ativo: 'Ativo', em_observacao: 'Em observação', tese_rompida: 'Tese rompida', encerrado: 'Encerrado' };
+
+function TabelaHistoricoRevisoes({ itens }) {
+  if (!itens?.length) return <div className="ji-vazio">Nenhuma revisão de tese registrada ainda.</div>;
+  return (
+    <table className="ji-tabela-ativos">
+      <thead><tr><th>Data</th><th>Score</th><th>Decisão</th><th>Conclusão</th></tr></thead>
+      <tbody>
+        {itens.map((r, i) => (
+          <tr key={i}>
+            <td>{new Date(r.review_date).toLocaleDateString('pt-BR')}</td>
+            <td>{r.scoreCalculado != null ? r.scoreCalculado.toFixed(0) : '—'}</td>
+            <td>{STATUS_LABEL[r.status_after_review] || r.status_after_review}</td>
+            <td style={{ maxWidth: 260 }}>{r.conclusion || '—'}</td>
           </tr>
         ))}
       </tbody>
