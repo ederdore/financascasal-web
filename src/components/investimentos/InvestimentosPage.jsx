@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useInvestimentos } from './useInvestimentos';
-import Dashboard from './Dashboard';
+import Dashboard from './investimentosDashboard';
 import FichaAtivo from './FichaAtivo';
+import CadastroAtivo from './CadastroAtivo';
 
 /**
  * Página principal do módulo — troca entre Dashboard e Ficha do Ativo.
@@ -9,8 +10,9 @@ import FichaAtivo from './FichaAtivo';
  * seções, me diga e eu adapto para <Route>/useParams.
  */
 export default function InvestimentosPage({ casalCode }) {
-  const { dados, ativos, loading, erro, registrarNota } = useInvestimentos(casalCode);
+  const { dados, ativos, loading, erro, registrarNota, recarregar } = useInvestimentos(casalCode);
   const [tickerSelecionado, setTickerSelecionado] = useState(null);
+  const [mostrarCadastro, setMostrarCadastro] = useState(false);
 
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: '#6B6B66' }}>Carregando seu jardim de investimentos...</div>;
@@ -21,6 +23,16 @@ export default function InvestimentosPage({ casalCode }) {
       <div style={{ padding: 40, textAlign: 'center', color: '#B3402F' }}>
         Não foi possível carregar os investimentos. Detalhe: {erro.message}
       </div>
+    );
+  }
+
+  if (mostrarCadastro) {
+    return (
+      <CadastroAtivo
+        casalCode={casalCode}
+        aoSalvar={async () => { setMostrarCadastro(false); await recarregar(); }}
+        aoCancelar={() => setMostrarCadastro(false)}
+      />
     );
   }
 
@@ -40,5 +52,12 @@ export default function InvestimentosPage({ casalCode }) {
     );
   }
 
-  return <Dashboard dados={dados} aoAbrirAtivo={setTickerSelecionado} />;
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 24px 0' }}>
+        <button className="ji-botao-primario" onClick={() => setMostrarCadastro(true)}>+ Novo ativo</button>
+      </div>
+      <Dashboard dados={dados} aoAbrirAtivo={setTickerSelecionado} />
+    </div>
+  );
 }
