@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 // AJUSTE ESTE IMPORT para o caminho real do seu client Supabase
 // (ex: '../../supabaseClient' ou '../../lib/supabase')
-import { supabase } from '../../supabaseClient';
-
+import { supabase } from '../../supabase.js';
 import {
   calcularPosicao,
   calcularValorAtual,
