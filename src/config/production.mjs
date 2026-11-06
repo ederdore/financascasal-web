@@ -17,7 +17,10 @@ export function validateProductionEnvironment(env, browserOrigin) {
       (env.EDEN_ENV !== undefined && env.EDEN_ENV !== 'production')) fail('EXPLICIT_ENVIRONMENT_REQUIRED')
   // Reuse the existing restricted command policy: manual RPCs, no navigation jobs.
   if (env.VITE_EDEN_CLIENT_MODE !== 'private-pilot') fail('RESTRICTED_CLIENT_POLICY_REQUIRED')
-  if (Object.keys(env).some(k => k.startsWith('VITE_') && !PRODUCTION_ENV_KEYS.includes(k))) fail('UNEXPECTED_PUBLIC_ENV_KEY')
+  const publicConfigKeys = Object.keys(env).filter(
+    key => key.startsWith('VITE_') && !key.startsWith('VITE_VERCEL_'),
+  )
+  if (publicConfigKeys.some(key => !PRODUCTION_ENV_KEYS.includes(key))) fail('UNEXPECTED_PUBLIC_ENV_KEY')
   if (env.VITE_EDEN_PROJECT_ID !== PRODUCTION.projectId ||
       env.VITE_PRODUCTION_WEB_ORIGIN !== PRODUCTION.webOrigin ||
       env.VITE_SUPABASE_URL !== PRODUCTION.supabaseUrl ||
