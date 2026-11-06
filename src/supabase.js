@@ -1,14 +1,27 @@
+import {installPrivateBoundary} from './config/privatePilot.mjs'
+import {MVP_MODE,assertMvpRequest} from './config/mvpHomologation.mjs'
 import { createClient } from '@supabase/supabase-js'
+import { validateWebEnvironment } from './config/environment.js'
+import { installLocalNetworkBoundary } from './config/networkBoundary.js'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const environment = validateWebEnvironment(import.meta.env, window.location.origin)
+if(['private-pilot','production'].includes(environment.environment))installPrivateBoundary(window,environment)
+else installLocalNetworkBoundary(window,environment.clientMode===MVP_MODE?assertMvpRequest:undefined)
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-export const API_URL = import.meta.env.VITE_API_URL || 'https://financascasal-backend.vercel.app'
+export const supabase = createClient(environment.supabaseUrl, environment.anonKey, {
+  auth: { storageKey: `${environment.storageKey}:fresh-mvp` },
+  global: { fetch: window.fetch.bind(window) },
+})
+export const CLIENT_MODE = environment.clientMode
+export const PRIVATE_PILOT_POLICY = Object.freeze({cardScope:environment.cardScope??'blocked',projectId:environment.projectId})
+export const LOCAL_RPC_CONNECTION = Object.freeze({url:environment.supabaseUrl,anonKey:environment.anonKey})
+export const SUPABASE_CONFIGURED = true // Invalid config throws before client creation.
+export const API_URL = environment.apiUrl
 export const USD_BRL = 5.15
 export const EUR_BRL = 5.65
 
 export function fmt(n, moeda = 'BRL') {
+  if (moeda === 'GBP') return '£ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
   if (moeda === 'USD') return 'US$ ' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})
   if (moeda === 'EUR') return '€ '  + Number(n||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})
   return 'R$ ' + Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})

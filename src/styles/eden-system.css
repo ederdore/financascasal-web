@@ -1,0 +1,151 @@
+/* Éden Finance — visual system shared by every functional screen. */
+:root {
+  --eden-ink:#183528; --eden-forest:#245238; --eden-leaf:#497954;
+  --eden-moss:#76935f; --eden-gold:#c58a42; --eden-sun:#e7b75f;
+  --eden-clay:#bd7659; --eden-sky:#6e9eaa; --eden-lilac:#827a9e;
+  --usd:#557f91; --eur:#756d91;
+  --eden-paper:#fffefa; --eden-canvas:#f7f5ef; --eden-line:#e5e0d5;
+  --bg:var(--eden-canvas); --card:var(--eden-paper); --primary:var(--eden-ink);
+  --secondary:#667269; --separator:var(--eden-line); --border:#eeeae1;
+  --green:var(--eden-leaf); --green-dk:var(--eden-forest); --green-bg:#edf4eb;
+  --red:#c55f4d; --red-bg:#faeeea; --yellow:#c88b38; --yellow-bg:#fbf3df;
+  --blue:#5e8998; --blue-bg:#edf4f6; --purple:#756d91; --purple-bg:#f1eff6;
+  --radius:18px; --radius-sm:12px; --radius-lg:24px;
+  --shadow-sm:0 1px 2px rgba(24,53,40,.03),0 8px 24px rgba(24,53,40,.045);
+  --shadow:0 15px 38px rgba(24,53,40,.08); --shadow-lg:0 25px 75px rgba(24,53,40,.16);
+}
+
+html { font-size:16px; background:var(--eden-canvas); }
+body,button,input,select,textarea { font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important; }
+body { color:var(--eden-ink); line-height:1.55; }
+button,a,[role="button"] { -webkit-tap-highlight-color:transparent; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:3px solid rgba(197,138,66,.25); outline-offset:2px; }
+
+/* Shell */
+.main { background:radial-gradient(circle at 92% 0,rgba(231,183,95,.10),transparent 28rem),var(--eden-canvas); }
+.topbar { min-height:88px;height:auto;padding:14px clamp(20px,3vw,44px); }
+.topbar-eyebrow { font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:#8a7660;font-weight:750; }
+.topbar h2 { font-size:clamp(21px,1.8vw,27px);line-height:1.15;margin-top:3px; }
+.couple-code { font-size:15px!important;color:var(--eden-ink)!important;padding:9px 13px;border:1px solid var(--eden-line);border-radius:999px;background:rgba(255,255,255,.7); }
+.couple-code small { color:#7e887f!important;font-size:11px!important; }
+.page { width:100%;max-width:1540px;margin:0 auto;padding:clamp(22px,3vw,42px); }
+.eden-page { animation:eden-page-in .35s ease both; }
+.eden-page,.eden-page * { font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important; }
+/* Never transform the page shell: transformed ancestors trap fixed modal overlays. */
+@keyframes eden-page-in { from{opacity:.2} to{opacity:1} }
+
+/* Universal content language */
+.eden-page h1,.eden-page h2,.eden-page h3,.eden-page h4 { font-family:inherit!important;color:var(--eden-ink);line-height:1.2; }
+.eden-page h1 { font-size:clamp(26px,2.3vw,36px)!important;letter-spacing:-.04em; }
+.eden-page h2 { font-size:clamp(20px,1.7vw,27px)!important;letter-spacing:-.025em; }
+.eden-page h3 { font-size:18px!important; }
+.eden-page p,.eden-page li,.eden-page label { font-size:max(14px,1rem); }
+.eden-page small { font-size:12px;line-height:1.45; }
+.card,.mini-card { background:rgba(255,254,250,.96);border:1px solid var(--eden-line)!important;box-shadow:var(--shadow-sm); }
+.card { padding:22px;border-radius:20px; }
+.card:hover { border-color:#d9d1c2!important; }
+.card-title { font-size:17px!important;letter-spacing:-.015em; }
+.mini-card { min-height:124px;padding:19px;border-radius:18px;position:relative;overflow:hidden; }
+.mini-card::after { content:"";position:absolute;width:70px;height:70px;border-radius:50%;right:-32px;top:-32px;background:rgba(197,138,66,.075); }
+.mini-card .lbl { font-size:12px!important;color:#657268;letter-spacing:.08em;margin-bottom:10px; }
+.mini-card .val { font-size:clamp(22px,2vw,30px)!important;color:var(--eden-ink);font-variant-numeric:tabular-nums; }
+.mini-card .sub { font-size:13px!important;line-height:1.45;color:#707a72; }
+.grid-2,.grid-3,.grid-4 { gap:16px; }
+.row-between { gap:14px; }
+
+/* Actions use a balanced palette instead of a wall of green. */
+.btn { min-height:42px;padding:10px 17px;border-radius:12px;font-size:14px;font-weight:700;box-shadow:none;cursor:pointer; }
+.btn-primary { background:var(--eden-forest);color:#fff; }
+.btn-green { background:var(--eden-leaf);color:#fff; }
+.btn-red { background:var(--eden-clay);color:#fff; }
+.btn-outline { background:#fff;color:#43584b;border:1px solid #d8d4ca; }
+.btn-outline:hover { background:#f3eee4;color:var(--eden-ink);border-color:#c6baa6; }
+.btn-sm { min-height:34px;padding:7px 11px;font-size:13px; }
+
+/* Forms, tables and operational UI */
+.form-group { margin-bottom:19px; }
+.form-label { font-size:14px!important;color:#405649;margin-bottom:8px; }
+.form-input,.form-select,textarea { min-height:47px;background:#fff;border:1px solid #dcd7cc!important;border-radius:12px!important;font-size:15px!important;color:var(--eden-ink); }
+.form-input:focus,.form-select:focus,textarea:focus { border-color:var(--eden-leaf)!important;box-shadow:0 0 0 4px rgba(73,121,84,.10)!important; }
+.table-wrap { border:1px solid var(--eden-line);border-radius:16px;background:#fff; }
+table { min-width:680px; }
+th { padding:13px 15px;background:#f1eee7;color:#56645a;font-size:12px; }
+td { padding:15px;font-size:14px;border-color:#ece8df; }
+tr:hover td { background:#fbf8f1; }
+.modal-overlay { position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important;margin:0!important;box-sizing:border-box;z-index:10000!important;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(20,43,31,.48);backdrop-filter:blur(5px);overflow:hidden;overscroll-behavior:contain; }
+.modal { width:min(500px,100%);max-height:calc(100dvh - 48px);margin:0;padding:28px;border:1px solid rgba(255,255,255,.8);border-radius:24px;background:#fffefa;overflow-y:auto;overscroll-behavior:contain; }
+.modal h3 { font-size:22px!important; }
+.chip { min-height:36px;padding:7px 14px;font-size:13px;background:#fff;border:1px solid #ddd8ce; }
+.chip.active { background:var(--eden-forest);border-color:var(--eden-forest); }
+.badge { padding:5px 10px;border-radius:999px;font-size:12px; }
+.tag { font-size:12px;padding:5px 9px;border-radius:999px; }
+.prog-wrap { height:8px;background:#e8e3d8; }
+.empty { min-height:220px;border:1px dashed #d8d1c4;border-radius:20px;background:rgba(255,255,255,.5);font-size:15px;justify-content:center; }
+
+/* Screen-specific accent identities */
+.eden-page-jardim .card:first-of-type { border-color:rgba(197,138,66,.35)!important; }
+.eden-page-patrimonio .mini-card:nth-child(4n+2),.eden-page-investimentos .mini-card:nth-child(4n+2) { border-top:3px solid var(--eden-sky)!important; }
+.eden-page-metas .card:nth-child(3n+1) { border-top:3px solid var(--eden-gold)!important; }
+.eden-page-metas .card:nth-child(3n+2) { border-top:3px solid var(--eden-sky)!important; }
+.eden-page-metas .card:nth-child(3n) { border-top:3px solid var(--eden-clay)!important; }
+.eden-page-planejamento .mini-card:nth-child(4n+2) { background:#f0f5f4; }
+.eden-page-planejamento .mini-card:nth-child(4n+3) { background:#fbf4e8; }
+.eden-page-conquistas .card { background:linear-gradient(145deg,#fffefa,#f7f1e3); }
+.eden-page-configuracoes>.card { max-width:900px; }
+.eden-page>div>div:first-child>button { font-size:14px!important;min-height:42px; }
+
+/* Shared internal navigation replaces the legacy underline-only tabs. */
+.eden-module{min-width:0}.eden-subnav{display:flex;align-items:center;gap:7px;margin:0 0 24px;padding:6px;width:max-content;max-width:100%;overflow-x:auto;border:1px solid var(--eden-line)!important;border-radius:16px;background:#ede9df;box-shadow:inset 0 1px 2px rgba(24,53,40,.035)}
+.eden-subnav button{min-height:40px!important;padding:9px 16px!important;border:0!important;border-radius:11px!important;background:transparent!important;color:#667269!important;font-size:14px!important;font-weight:650!important;white-space:nowrap;transition:.18s ease!important}
+.eden-subnav button:hover{color:var(--eden-ink)!important;background:rgba(255,255,255,.55)!important}.eden-subnav button.active{color:var(--eden-forest)!important;background:#fff!important;box-shadow:0 4px 14px rgba(24,53,40,.09)!important}
+
+/* Compatibility bridge: neutralize hard-coded colors from the original UI. */
+.eden-page [style*="#FCEBEB"],.eden-page [style*="#FFF1F2"]{background:var(--red-bg)!important}.eden-page [style*="#E1F5EE"],.eden-page [style*="#F0FAF0"],.eden-page [style*="#EFF6EF"]{background:var(--green-bg)!important}.eden-page [style*="#EEF6FF"],.eden-page [style*="#EFF6FF"]{background:var(--blue-bg)!important}.eden-page [style*="#FFF3CD"],.eden-page [style*="#FDF8EC"]{background:var(--yellow-bg)!important}.eden-page [style*="#F3F0F9"]{background:var(--purple-bg)!important}
+.eden-page [style*="#1D9E75"]{background:var(--eden-leaf)!important}.eden-page [style*="#178DD1"],.eden-page [style*="#3B82F6"]{background:var(--eden-sky)!important}.eden-page [style*="#E8384F"],.eden-page [style*="#E24B4A"]{background:var(--eden-clay)!important}.eden-page [style*="#6B6B66"]{color:var(--secondary)!important}.eden-page [style*="#B3402F"]{color:#a94f3e!important}
+
+/* Investment module adopts the same surfaces and type scale. */
+.eden-investments-shell{min-width:0}.eden-page-investimentos .ji-root{padding:8px 0 28px!important;background:transparent!important;color:var(--eden-ink)!important;font-family:inherit!important}.eden-page-investimentos .ji-header{margin-bottom:22px!important}.eden-page-investimentos .ji-header h1{font-size:30px!important;color:var(--eden-ink)!important}.eden-page-investimentos .ji-subtitulo{font-size:15px!important;color:var(--secondary)!important}.eden-page-investimentos .ji-card,.eden-page-investimentos .ji-secao{background:#fffefa!important;border:1px solid var(--eden-line)!important;border-radius:19px!important;box-shadow:var(--shadow-sm)!important}.eden-page-investimentos .ji-card{padding:19px!important}.eden-page-investimentos .ji-secao{padding:21px!important}.eden-page-investimentos .ji-card-label{font-size:12px!important;color:var(--secondary)!important}.eden-page-investimentos .ji-card-valor{color:var(--eden-ink)!important}.eden-page-investimentos .ji-secao-titulo{font-size:17px!important;color:var(--eden-ink)!important}.eden-page-investimentos .ji-botao-primario{min-height:42px!important;padding:10px 17px!important;border-radius:12px!important;background:var(--eden-forest)!important;font-family:inherit!important;font-size:14px!important}.eden-page-investimentos .ji-progress-fill{background:linear-gradient(90deg,var(--eden-leaf),var(--eden-gold))!important}.eden-page-investimentos .ji-vazio{padding:42px 22px!important;border:1px dashed #d8d1c4!important;border-radius:18px!important;background:rgba(255,255,255,.55)!important;color:var(--secondary)!important;font-size:15px!important}
+
+.currency-shield{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0 0 18px;padding:24px 26px;border:1px solid #d9d1bf;border-radius:22px;background:linear-gradient(120deg,#fffaf0,#edf4f2)}
+.currency-shield h2{margin:5px 0 6px}.currency-shield p{max-width:720px;color:var(--secondary)}.currency-kicker{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--eden-gold)}
+.currency-shield-score{flex:0 0 180px;text-align:center;padding:16px;border-radius:17px;background:#fff;border:1px solid var(--eden-line)}.currency-shield-score strong{display:block;font-size:32px;color:var(--eden-forest)}.currency-shield-score span{font-size:12px;color:var(--secondary)}
+.currency-card{min-height:190px}.currency-card.currency-eur{background:#f4f8f8}.currency-value{font-size:25px;font-weight:750;color:var(--eden-forest)}.currency-meta,.currency-conversion{font-size:13px;color:var(--secondary)}.currency-flag{font-size:38px}.currency-progress{font-size:13px;font-weight:700;color:var(--eden-forest)}.currency-empty{display:flex;align-items:center;justify-content:center;text-align:center}.currency-empty p{font-size:13px!important;color:var(--secondary);margin:5px 0 12px}
+@media(max-width:768px){.currency-shield{align-items:flex-start;flex-direction:column}.currency-shield-score{width:100%;flex-basis:auto}}
+
+/* Landing: keep full-bleed hero while every content block stays readable and centered. */
+.eden-landing { background:#fff!important;font-size:16px; }
+.eden-landing,.eden-landing * { font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important; }
+.eden-landing .serif { font-family:inherit!important; }
+.eden-landing nav { height:72px!important;background:rgba(255,255,255,.94)!important;padding-left:max(28px,calc((100vw - 1450px)/2))!important;padding-right:max(28px,calc((100vw - 1450px)/2))!important; }
+.eden-landing .nav-links a { font-size:15px!important; }
+.eden-landing .nav-links button { font-size:14px!important;padding:11px 20px!important; }
+.eden-landing section:first-of-type { padding-top:72px!important; }
+.eden-landing .hero-grid { min-height:500px!important;grid-template-columns:minmax(0,1fr) minmax(460px,1fr)!important;background:linear-gradient(90deg,#264e36 0 50%,#f0e6d7 50%)!important; }
+.eden-landing .hero-grid>div:first-child { min-height:500px!important;padding:55px max(40px,calc((100vw - 1450px)/2)) 55px max(40px,calc((100vw - 1450px)/2))!important; }
+.eden-landing .hero-grid>div:nth-child(2) { background:linear-gradient(90deg,rgba(246,239,226,.08),rgba(246,239,226,.35)),url('/images/home-hero-casal-v2.png') center/cover no-repeat!important; }
+.eden-landing .hero-grid>div:nth-child(2)>div:first-child { display:none; }
+.eden-landing .hero-grid>div:nth-child(2)>div:nth-child(2) { background:rgba(255,255,255,.94)!important;backdrop-filter:blur(10px); }
+.eden-landing .hero-grid h1 { font-size:clamp(38px,3.2vw,60px)!important;letter-spacing:-.045em!important; }
+.eden-landing .hero-grid p { font-size:17px!important; }
+.eden-landing .section { padding-left:max(28px,calc((100vw - 1450px)/2))!important;padding-right:max(28px,calc((100vw - 1450px)/2))!important; }
+.eden-landing .section h2 { font-size:clamp(30px,3vw,47px)!important;letter-spacing:-.04em!important; }
+.eden-landing .section p,.eden-landing .section li { font-size:15px!important;line-height:1.7!important; }
+
+/* Onboarding inherits the same family and improves tiny helper copy. */
+.eden-onboarding,.eden-onboarding * { font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important; }
+.eden-onboarding { background:radial-gradient(circle at 20% 0,rgba(231,183,95,.15),transparent 28rem),#f5f2e9!important; }
+.eden-onboarding>div { border:1px solid var(--eden-line);box-shadow:var(--shadow-lg)!important; }
+.eden-onboarding p,.eden-onboarding label { font-size:14px!important;line-height:1.55!important; }
+.eden-onboarding h1,.eden-onboarding h2 { font-size:clamp(27px,3vw,38px)!important;font-family:inherit!important; }
+
+@media(max-width:1100px){
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .eden-landing .hero-grid{grid-template-columns:1fr!important;background:#264e36!important;}
+  .eden-landing .hero-grid>div{min-height:auto!important;}
+}
+@media(max-width:768px){
+  .topbar{min-height:76px;padding:11px 16px;}.topbar-eyebrow{display:none}.topbar h2{font-size:20px}.couple-code{font-size:13px!important;}
+  .page{padding:19px 14px 34px}.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.row-between{align-items:flex-start;flex-wrap:wrap}
+  .card{padding:17px}.mini-card{min-height:108px}.modal{padding:21px}.eden-landing .hero-grid>div:first-child{padding:48px 24px!important}
+  .eden-landing .hero-grid h1{font-size:36px!important}.eden-landing .section{padding:64px 22px!important}
+}
